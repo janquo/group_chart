@@ -26,7 +26,7 @@ pub mod communicator {
     use std::fs::File;
 
     pub fn get_chart(user: &str, key: &str) -> Result<Value, reqwest::Error> {
-        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.getWeeklyAlbumChart&user={}&api_key={}&format=json",
+        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period=7day&format=json",
                               user, key);
         let mut response = reqwest::get(&request_url)?;
 
@@ -36,10 +36,11 @@ pub mod communicator {
     }
 
     pub fn parse_album(data: &Value) -> (String, String, i64) {
+        eprintln!("{:?}", data);
         (
             String::from(data["name"].as_str().unwrap()),
-            String::from(data["artist"]["#text"].as_str().unwrap()),
-            data["playcount"].as_str().unwrap().parse().unwrap(),
+            String::from(data["artist"]["name"].as_str().unwrap()),
+            data["playcount"].as_i64().unwrap(),
         )
     }
 
@@ -68,7 +69,8 @@ pub mod communicator {
                 .and_then(|segments| segments.last())
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
                 .unwrap_or("tmp.bin");
-
+            let fname = format!("./images/{}", fname);
+            let fname = fname.as_str();
             result = String::from(fname);
             File::create(fname).unwrap()
         };

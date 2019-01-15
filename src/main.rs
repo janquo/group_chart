@@ -4,6 +4,7 @@ use group_chart::communicator::*;
 use group_chart::drawer;
 use group_chart::reader;
 use std::collections::HashMap;
+use std::{thread, time};
 
 fn main() {
     let top_number = 25;
@@ -28,18 +29,21 @@ fn main() {
 
         let user_data = user_data.unwrap();
 
-        if !user_data["weeklyalbumchart"]["album"].is_array() {
+        if !user_data["topalbums"]["album"].is_array() {
             eprintln!("User {} has no scrobbles. Continue to next user.", user);
             continue;
         };
 
         let user_albums: &Vec<serde_json::Value> =
-            user_data["weeklyalbumchart"]["album"].as_array().unwrap();
+            user_data["topalbums"]["album"].as_array().unwrap();
 
         for (name, artist, count) in user_albums.iter().map(|x| parse_album(x)) {
+            eprintln!("adding {} to counter of album {} by user {}", count, name, user);
             let count_glob = global_chart.entry((name, artist)).or_insert(0);
             *count_glob += count;
         }
+        let half_second = time::Duration::from_millis(500);
+        thread::sleep(half_second);
     }
 
     let mut global_chart_vec: Vec<((String, String), i64)> = Vec::new();

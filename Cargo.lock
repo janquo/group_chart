@@ -245,7 +245,7 @@ dependencies = [
 
 [[package]]
 name = "group_chart"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "image 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.5 (registry+https://github.com/rust-lang/crates.io-index)",
