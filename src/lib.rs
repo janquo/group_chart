@@ -2,7 +2,9 @@
 
 //#[macro_use]
 extern crate image;
+extern crate imageproc;
 extern crate reqwest;
+extern crate rusttype;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
@@ -36,11 +38,10 @@ pub mod communicator {
     }
 
     pub fn parse_album(data: &Value) -> (String, String, i64) {
-        eprintln!("{:?}", data);
         (
             String::from(data["name"].as_str().unwrap()),
             String::from(data["artist"]["name"].as_str().unwrap()),
-            data["playcount"].as_i64().unwrap(),
+            data["playcount"].as_str().unwrap().parse().unwrap(),
         )
     }
 
@@ -55,7 +56,18 @@ pub mod communicator {
     }
 
     pub fn get_img_url(data: &Value) -> Result<String, std::option::NoneError> {
-            Ok(String::from(data["album"]["image"].as_array()?[1]["#text"].as_str()?))
+        Ok(String::from(
+            data["album"]["image"].as_array()?[1]["#text"].as_str()?,
+        ))
+    }
+
+    pub fn get_album_tracks_no(data: &Value) -> usize {
+        //eprintln!("{:?}", data["album"]["tracks"]);
+        let tracks = data["album"]["tracks"]["track"].as_array();
+        match tracks {
+            None => 15,
+            Some(x) => x.len(),
+        }
     }
 
     pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
@@ -81,19 +93,6 @@ pub mod communicator {
 
 pub mod drawer {
 
-    pub fn play() {
-        use image::GenericImage;
-
-        let mut img = image::ImageBuffer::new(128, 64);
-
-        let img2 = image::open("img.png").unwrap();
-
-        img.copy_from(&img2, 0, 0);
-        img.copy_from(&img2, 64, 0);
-
-        img.save("test.png").unwrap();
-    }
-
     pub fn collage(images: Vec<String>) {
         use image::GenericImage;
 
@@ -102,9 +101,34 @@ pub mod drawer {
         for i in 0..25 as usize {
             let img2 = image::open(images[i].clone()).unwrap();
 
-            img.copy_from(&img2, 64*(i % 5) as u32, 64*(i / 5) as u32);
+            img.copy_from(&img2, 64 * (i % 5) as u32, 64 * (i / 5) as u32);
         }
-
+        //draw_description(&mut img);
         img.save("test.png").unwrap();
+    }
+
+    fn draw_description(img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>) {
+        use rusttype::{FontCollection, Scale};
+
+        let font = Vec::from(include_bytes!("comic.ttf") as &[u8]);
+        let font = FontCollection::from_bytes(font)
+            .unwrap()
+            .into_font()
+            .unwrap();
+
+        let height = 12.4;
+        let scale = Scale {
+            x: height * 2.0,
+            y: height,
+        };
+        imageproc::drawing::draw_text_mut(
+            img,
+            image::Rgba([0u8, 0u8, 255u8, 255u8]),
+            0,
+            0,
+            scale,
+            &font,
+            "Hello, world!",
+        );
     }
 }
