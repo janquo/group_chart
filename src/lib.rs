@@ -21,6 +21,7 @@ pub struct Album {
     tracks: Option<usize>,
     score: Option<f64>,
     pub image: Option<String>,
+    mbid: Option<String>,
 }
 
 impl Album {
@@ -32,16 +33,25 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
+            mbid: data["mbid"].as_str().map(|s| String::from(s)),
         }
     }
 
     pub fn more_info(&mut self, key: &str) -> Result<(), std::option::NoneError> {
-        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
-                              key, self.artist, self.title);
+        let request_url = if self.mbid.is_none()
+            || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
+        {
+            format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
+                              key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"))
+        } else {
+            format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&mbid={}&format=json",
+                                                    key, self.mbid.clone().unwrap())
+        };
+
         let mut response = reqwest::get(&request_url).expect("no response from api");
 
         let data = response.json();
-        let data : Value = match data {
+        let data: Value = match data {
             Ok(x) => x,
             _ => return Ok(()),
         };
@@ -61,7 +71,7 @@ impl Album {
     }
 
     fn compute_score(&mut self) {
-        if self.tracks.is_none() {
+        if self.tracks.is_none() || self.tracks == Some(1) {
             return;
         }
         self.score = Some(self.playcount as f64 / (self.tracks.unwrap() as f64));
@@ -111,7 +121,10 @@ impl std::fmt::Display for Album {
         write!(
             f,
             "{} - {}, with score: {} ({})",
-            self.artist, self.title, self.playcount, self.score.unwrap_or(0f64)
+            self.artist,
+            self.title,
+            self.playcount,
+            self.score.unwrap_or(0f64)
         )
     }
 }

@@ -62,7 +62,7 @@ fn main() {
     for mut album in albums.into_iter() {
         eprintln!("{}", top_albums.len());
         album.more_info(&key);
-        if (album.get_count() as f64) < min_so_far  && top_albums.len() >= top_number {
+        if (album.get_count() as f64 / 2f64) < min_so_far  && top_albums.len() >= top_number {
             break;
         }
         match album.get_score() {
@@ -72,16 +72,29 @@ fn main() {
         top_albums.push(album);
     }
 
-    top_albums.sort_by(Album::compare_decr);
-    top_albums.truncate(top_number);
+    let mut top_none : Vec<&Album> = top_albums.iter().filter(|x| x.get_score().is_none()).collect();
+    top_none.sort_by_key(|x| -x.get_count());
+    let mut top_none = top_none.drain(0..top_number);
+    eprintln!("none {}", top_none.len());
+    let mut top_some : Vec<&Album> = top_albums.iter().filter(|x| x.get_score().is_some()).collect();
+    top_some.sort_by(|x, y| y.get_score().unwrap().partial_cmp(&x.get_score().unwrap()).unwrap());
+    let mut top_some = top_some.drain(0..top_number);
+    eprintln!("some {}", top_some.len());
 
-    for album in top_albums {
+    for _ in 0..top_number {
+
+        let album = top_some.next().unwrap();
+
         println!("{}", album);
 
-        match album.image {
+        match &album.image {
             Some(x) => cover_urls.push(download_image(&x).unwrap_or(String::from("blank.png"))),
             _ => cover_urls.push(String::from("blank.png")),
         }
     }
     drawer::collage(cover_urls);
+
+    for album in top_none {
+        println!("no place for: {}", album);
+    }
 }
