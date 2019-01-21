@@ -1,7 +1,7 @@
 use group_chart::*;
+use num_rational::Ratio;
 use std::collections::BTreeSet;
 use std::{thread, time};
-use num_rational::Ratio;
 
 fn main() {
     let top_number = 25;
@@ -57,19 +57,38 @@ fn main() {
     albums.sort_by_key(|album| -album.get_count());
 
     let mut cover_urls: Vec<String> = Vec::new();
-    let mut min_so_far = Ratio::new(100000, 1);
     let mut top_albums = BTreeSet::new();
+    let mut scores: BTreeSet<Ratio<i64>> = BTreeSet::new(); //BTreeSet doesnt hold multiple copies of the same score, however, it is not so bad
 
     for mut album in albums.into_iter() {
         eprintln!("{}", top_albums.len());
         album.more_info(&key);
-        if Ratio::new(album.get_count(), 2) < min_so_far && top_albums.len() >= top_number {
-            break;
+        let smallest = scores
+            .iter()
+            .next()
+            .cloned()
+            .unwrap_or(Ratio::new(100000, 1));
+        if top_albums.len() >= top_number {
+            if Ratio::new(album.get_count(), 2) < smallest {
+                break;
+            }
         }
         match album.get_score() {
-            Some(score) => min_so_far = Ratio::min(min_so_far, score),
+            Some(score) => {
+                if score < smallest && scores.len() < top_number {
+                    scores.insert(score);
+                } else if score >= smallest {
+                    scores.insert(score);
+                    if scores.len() > top_number {
+                        scores = scores.into_iter().rev().take(top_number).collect();
+                    }
+                } else {
+                    continue;
+                }
+            }
             None => (),
         }
+
         top_albums.insert(album);
     }
     Album::tracks_from_file(&mut top_albums);
@@ -114,5 +133,4 @@ fn main() {
         }
     }
     drawer::collage(cover_urls);
-
 }

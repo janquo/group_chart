@@ -3,13 +3,14 @@
 //#[macro_use]
 extern crate image;
 extern crate imageproc;
+extern crate num_rational;
 extern crate reqwest;
 extern crate rusttype;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
-extern crate num_rational;
 
+use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
@@ -17,7 +18,6 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-use num_rational::Ratio;
 
 #[derive(Clone)]
 pub struct Album {
@@ -65,7 +65,13 @@ impl Album {
                                                     key, self.mbid.clone().unwrap())
         };
 
-        let mut response = reqwest::get(&request_url).expect("no response from api");
+        let mut response = reqwest::get(&request_url);
+        while response.is_err() {
+            eprintln!("couldn't aquire data");
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+            response = reqwest::get(&request_url);
+        }
+        let mut response = response.unwrap();
 
         let data = response.json();
         let data: Value = match data {
