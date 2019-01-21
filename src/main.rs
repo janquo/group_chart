@@ -1,6 +1,7 @@
 use group_chart::*;
 use std::collections::BTreeSet;
 use std::{thread, time};
+use num_rational::Ratio;
 
 fn main() {
     let top_number = 25;
@@ -56,17 +57,17 @@ fn main() {
     albums.sort_by_key(|album| -album.get_count());
 
     let mut cover_urls: Vec<String> = Vec::new();
-    let mut min_so_far = 100000f64;
+    let mut min_so_far = Ratio::new(100000, 1);
     let mut top_albums = BTreeSet::new();
 
     for mut album in albums.into_iter() {
         eprintln!("{}", top_albums.len());
         album.more_info(&key);
-        if (album.get_count() as f64 / 2f64) < min_so_far && top_albums.len() >= top_number {
+        if Ratio::new(album.get_count(), 2) < min_so_far && top_albums.len() >= top_number {
             break;
         }
         match album.get_score() {
-            Some(score) => min_so_far = f64::min(min_so_far, score),
+            Some(score) => min_so_far = Ratio::min(min_so_far, score),
             None => (),
         }
         top_albums.insert(album);
@@ -79,8 +80,16 @@ fn main() {
         .collect();
     top_none.sort_by_key(|x| -x.get_count());
     let top_none = top_none.drain(..);
-    
+
     eprintln!("none {}", top_none.len());
+
+    nones_to_file(&(top_none.collect()));
+
+    println!("update manual tracks file and enter anything to proceed");
+    std::io::stdin().read_line(&mut String::new());
+
+    Album::tracks_from_file(&mut top_albums);
+
     let mut top_some: Vec<&Album> = top_albums
         .iter()
         .filter(|x| x.get_score().is_some())
@@ -106,5 +115,4 @@ fn main() {
     }
     drawer::collage(cover_urls);
 
-    nones_to_file(&(top_none.collect()));
 }

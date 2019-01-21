@@ -8,6 +8,7 @@ extern crate rusttype;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
+extern crate num_rational;
 
 use serde_json::Value;
 use std::cmp::Ordering;
@@ -16,6 +17,7 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use num_rational::Ratio;
 
 #[derive(Clone)]
 pub struct Album {
@@ -23,7 +25,7 @@ pub struct Album {
     artist: String,
     playcount: i64,
     tracks: Option<usize>,
-    score: Option<f64>,
+    score: Option<Ratio<i64>>,
     pub image: Option<String>,
     mbid: Option<String>,
 }
@@ -89,7 +91,7 @@ impl Album {
         if self.tracks.is_none() || self.tracks == Some(1) {
             return;
         }
-        self.score = Some(self.playcount as f64 / (self.tracks.unwrap() as f64));
+        self.score = Some(Ratio::new(self.playcount, (self.tracks.unwrap() as i64)));
     }
 
     pub fn incr_playcount(&mut self, other: &Album) {
@@ -100,7 +102,7 @@ impl Album {
         self.playcount
     }
 
-    pub fn get_score(&self) -> Option<f64> {
+    pub fn get_score(&self) -> Option<Ratio<i64>> {
         self.score
     }
 
@@ -119,7 +121,7 @@ impl Album {
     }
 
     pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
-        let mut content = fs::read_to_string("manual_tracks.txt")?;
+        let content = fs::read_to_string("manual_tracks.txt")?;
         for line in content.lines() {
             let mut words = line.split(";");
             let (artist, title, tracks) = (words.next(), words.next(), words.next());
@@ -165,7 +167,7 @@ impl std::fmt::Display for Album {
             self.artist,
             self.title,
             self.playcount,
-            self.score.unwrap_or(0f64)
+            self.score.unwrap_or(Ratio::new(0, 1))
         )
     }
 }
