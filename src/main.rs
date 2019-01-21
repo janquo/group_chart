@@ -47,7 +47,7 @@ fn main() {
             }
         }
 
-        println!("{}/{}", progress+1, no_users);
+        println!("{}/{}", progress + 1, no_users);
         thread::sleep(time::Duration::from_millis(125)); // don't overuse server
     }
 
@@ -57,32 +57,44 @@ fn main() {
 
     let mut cover_urls: Vec<String> = Vec::new();
     let mut min_so_far = 100000f64;
-    let mut top_albums = Vec::new();
+    let mut top_albums = BTreeSet::new();
 
     for mut album in albums.into_iter() {
         eprintln!("{}", top_albums.len());
         album.more_info(&key);
-        if (album.get_count() as f64 / 2f64) < min_so_far  && top_albums.len() >= top_number {
+        if (album.get_count() as f64 / 2f64) < min_so_far && top_albums.len() >= top_number {
             break;
         }
         match album.get_score() {
             Some(score) => min_so_far = f64::min(min_so_far, score),
             None => (),
         }
-        top_albums.push(album);
+        top_albums.insert(album);
     }
+    Album::tracks_from_file(&mut top_albums);
 
-    let mut top_none : Vec<&Album> = top_albums.iter().filter(|x| x.get_score().is_none()).collect();
+    let mut top_none: Vec<&Album> = top_albums
+        .iter()
+        .filter(|x| x.get_score().is_none())
+        .collect();
     top_none.sort_by_key(|x| -x.get_count());
-    let mut top_none = top_none.drain(0..top_number);
+    let top_none = top_none.drain(..);
+    
     eprintln!("none {}", top_none.len());
-    let mut top_some : Vec<&Album> = top_albums.iter().filter(|x| x.get_score().is_some()).collect();
-    top_some.sort_by(|x, y| y.get_score().unwrap().partial_cmp(&x.get_score().unwrap()).unwrap());
+    let mut top_some: Vec<&Album> = top_albums
+        .iter()
+        .filter(|x| x.get_score().is_some())
+        .collect();
+    top_some.sort_by(|x, y| {
+        y.get_score()
+            .unwrap()
+            .partial_cmp(&x.get_score().unwrap())
+            .unwrap()
+    });
     let mut top_some = top_some.drain(0..top_number);
     eprintln!("some {}", top_some.len());
 
     for _ in 0..top_number {
-
         let album = top_some.next().unwrap();
 
         println!("{}", album);
@@ -94,7 +106,5 @@ fn main() {
     }
     drawer::collage(cover_urls);
 
-    for album in top_none {
-        println!("no place for: {}", album);
-    }
+    nones_to_file(&(top_none.collect()));
 }

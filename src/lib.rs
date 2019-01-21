@@ -11,9 +11,13 @@ extern crate serde_json;
 
 use serde_json::Value;
 use std::cmp::Ordering;
+use std::collections::BTreeSet;
+use std::error::Error;
 use std::fs;
 use std::fs::File;
+use std::io::Write;
 
+#[derive(Clone)]
 pub struct Album {
     title: String,
     artist: String,
@@ -37,6 +41,17 @@ impl Album {
         }
     }
 
+    pub fn new(artist: String, title: String) -> Album {
+        Album {
+            title,
+            artist,
+            playcount: 0,
+            tracks: None,
+            score: None,
+            image: None,
+            mbid: None,
+        }
+    }
     pub fn more_info(&mut self, key: &str) -> Result<(), std::option::NoneError> {
         let request_url = if self.mbid.is_none()
             || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
@@ -98,6 +113,32 @@ impl Album {
             .unwrap()
             .partial_cmp(&self.score.unwrap())
             .unwrap()
+    }
+    pub fn to_string_semic(&self) -> String {
+        format!("{};{};{}", self.artist, self.title, self.playcount)
+    }
+
+    pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
+        let mut content = fs::read_to_string("manual_tracks.txt")?;
+        for line in content.lines() {
+            let mut words = line.split(";");
+            let (artist, title, tracks) = (words.next(), words.next(), words.next());
+            if tracks == None {
+                continue;
+            }
+            let current = albums.get(&Album::new(
+                String::from(artist.unwrap()),
+                String::from(title.unwrap()),
+            ));
+            if current == None {
+                continue;
+            }
+            let mut updated = (*(current.clone().unwrap())).clone();
+            updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
+            updated.compute_score();
+            albums.replace(updated);
+        }
+        Ok(())
     }
 }
 impl PartialEq for Album {
@@ -168,6 +209,19 @@ pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
     };
     std::io::copy(&mut response, &mut dest).unwrap();
     Ok(result)
+}
+
+pub fn nones_to_file(nones: &Vec<&Album>) -> Result<(), std::io::Error> {
+    let mut file = File::create("nones.txt")?;
+    file.write_all(
+        nones
+            .iter()
+            .map(|x| x.to_string_semic())
+            .collect::<Vec<String>>()
+            .join("\n")
+            .as_bytes(),
+    )?;
+    Ok(())
 }
 
 pub mod drawer {
