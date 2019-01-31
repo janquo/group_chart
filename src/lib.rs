@@ -55,7 +55,7 @@ impl Album {
         }
     }
     pub fn more_info(&mut self, key: &str) -> Result<(), std::option::NoneError> {
-        let request_url = if self.mbid.is_none()
+        /* let request_url = if self.mbid.is_none()
             || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
         {
             format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
@@ -63,11 +63,14 @@ impl Album {
         } else {
             format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&mbid={}&format=json",
                                                     key, self.mbid.clone().unwrap())
-        };
+        };*/
+        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
+                          key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
+
 
         let mut response = reqwest::get(&request_url);
         while response.is_err() {
-            eprintln!("couldn't aquire data");
+                eprintln!("couldn't aquire data");
             std::thread::sleep(std::time::Duration::from_millis(1000));
             response = reqwest::get(&request_url);
         }
@@ -94,10 +97,10 @@ impl Album {
     }
 
     fn compute_score(&mut self) {
-        if self.tracks.is_none() || self.tracks == Some(1) {
+        if self.tracks.is_none() || self.tracks == Some(1) || self.tracks == Some(0) {
             return;
         }
-        self.score = Some(Ratio::new(self.playcount, (self.tracks.unwrap() as i64)));
+        self.score = Some(Ratio::new(self.playcount, self.tracks.unwrap() as i64));
     }
 
     pub fn incr_playcount(&mut self, other: &Album) {
@@ -138,8 +141,9 @@ impl Album {
                 String::from(artist.unwrap()),
                 String::from(title.unwrap()),
             ));
-            if current == None {
-                continue;
+            match current {
+                None => continue,
+                Some(x) => if x.score.is_some() {continue;},
             }
             let mut updated = (*(current.clone().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));

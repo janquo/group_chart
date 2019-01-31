@@ -16,17 +16,37 @@ fn main() {
     let no_users = users.len();
 
     for (progress, user) in users.iter().enumerate() {
-        let user_data = get_chart(user, &key);
+        let mut user_data = serde_json::Value::Null;
+        while true {
+            let mut user_data1 = get_chart(user, &key);
 
-        match user_data {
-            Err(x) => {
-                eprintln!("Error reading user {}. Continue to next user. {}", user, x);
-                continue;
+            match user_data1 {
+                Err(x) => {
+                    eprintln!("Error reading user {}. Continue to next user. {:?}", user, x);
+                    continue;
+                }
+                _ => (),
             }
-            _ => (),
-        }
 
-        let user_data = user_data.unwrap();
+            let mut user_data1 = user_data1.unwrap();
+
+            if user_data1["error"] == serde_json::Value::Null {
+                user_data = user_data1.clone();
+                break;
+            }
+            else {
+                let error_code = user_data1["error"].as_i64().unwrap();
+                eprintln!("Error code {} while reading user {}", error_code, user);
+                if error_code == 29 {
+                    eprintln!("waiting...");
+                    thread::sleep(time::Duration::from_millis(2000));
+                }
+                else {
+                    eprintln!("escaping");
+                    break;
+                }
+            }
+        }
 
         if !user_data["topalbums"]["album"].is_array() {
             eprintln!("User {} has no scrobbles. Continue to next user.", user);
@@ -60,8 +80,10 @@ fn main() {
     let mut top_albums = BTreeSet::new();
     let mut scores: BTreeSet<Ratio<i64>> = BTreeSet::new(); //BTreeSet doesnt hold multiple copies of the same score, however, it is not so bad
 
-    for mut album in albums.into_iter() {
-        eprintln!("{}", top_albums.len());
+    let albums_no = albums.len();
+    for (i, mut album) in albums.into_iter().enumerate() {
+        eprintln!("{}/{}", i, albums_no);
+        thread::sleep(time::Duration::from_millis(125));
         album.more_info(&key);
         let smallest = scores
             .iter()
