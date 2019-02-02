@@ -4,7 +4,8 @@ use std::collections::BTreeSet;
 use std::{thread, time};
 
 fn main() {
-    let top_number = 25;
+    let x_collage = 6; let y_collage = 6;
+    let top_number = (x_collage * y_collage) as usize;
 
     let users = get_users();
     let users: Vec<&str> = users.lines().collect();
@@ -18,7 +19,7 @@ fn main() {
     for (progress, user) in users.iter().enumerate() {
         let mut user_data = serde_json::Value::Null;
         while true {
-            let mut user_data1 = get_chart(user, &key);
+            let mut user_data1 = get_chart(user, &key, "7days");
 
             match user_data1 {
                 Err(x) => {
@@ -154,5 +155,5 @@ fn main() {
             _ => cover_urls.push(String::from("blank.png")),
         }
     }
-    drawer::collage(cover_urls);
+    drawer::collage(cover_urls, x_collage, y_collage);
 }

@@ -143,7 +143,7 @@ impl Album {
             ));
             match current {
                 None => continue,
-                Some(x) => if x.score.is_some() {continue;},
+                Some(x) => if x.score.is_some() {//continue;},
             }
             let mut updated = (*(current.clone().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
@@ -193,9 +193,9 @@ pub fn get_key() -> String {
     contents
 }
 
-pub fn get_chart(user: &str, key: &str) -> Result<Value, reqwest::Error> {
-    let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period=7day&format=json",
-                              user, key);
+pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::Error> {
+    let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&format=json",
+                              user, key, period);
     let mut response = reqwest::get(&request_url)?;
 
     let answer: Value = response.json()?;
@@ -238,15 +238,16 @@ pub fn nones_to_file(nones: &Vec<&Album>) -> Result<(), std::io::Error> {
 
 pub mod drawer {
 
-    pub fn collage(images: Vec<String>) {
+    pub fn collage(images: Vec<String>, x: u32, y: u32) {
+
         use image::GenericImage;
 
-        let mut img = image::ImageBuffer::new(870, 870);
+        let mut img = image::ImageBuffer::new(174 * x, 174 * y);
 
-        for i in 0..25 as usize {
-            let img2 = image::open(images[i].clone()).unwrap();
+        for i in 0..(x*y) as u32 {
+            let img2 = image::open(images[i as usize].clone()).unwrap();
 
-            img.copy_from(&img2, 174 * (i % 5) as u32, 174 * (i / 5) as u32);
+            img.copy_from(&img2, 174 * (i % x), 174 * (i / y));
         }
         //draw_description(&mut img);
         img.save("test.png").unwrap();
