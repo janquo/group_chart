@@ -13,7 +13,7 @@ extern crate serde_json;
 use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, BinaryHeap};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -31,7 +31,7 @@ pub struct Album {
 }
 
 impl Album {
-    pub fn parse_album(data: &Value) -> Album {
+    fn parse_album(data: &Value) -> Album {
         Album {
             title: String::from(data["name"].as_str().unwrap()),
             artist: String::from(data["artist"]["name"].as_str().unwrap()),
@@ -54,7 +54,7 @@ impl Album {
             mbid: None,
         }
     }
-    pub fn more_info(&mut self, key: &str) -> Result<(), std::option::NoneError> {
+    pub fn more_info(&mut self, key: &str) -> Result<(), reqwest::Error> {
         /* let request_url = if self.mbid.is_none()
             || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
         {
@@ -67,14 +67,7 @@ impl Album {
         let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
                           key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
 
-
-        let mut response = reqwest::get(&request_url);
-        while response.is_err() {
-                eprintln!("couldn't aquire data");
-            std::thread::sleep(std::time::Duration::from_millis(1000));
-            response = reqwest::get(&request_url);
-        }
-        let mut response = response.unwrap();
+        let mut response = reqwest::get(&request_url)?;
 
         let data = response.json();
         let data: Value = match data {
@@ -87,9 +80,10 @@ impl Album {
             self.tracks = None;
         }
 
-        self.image = data["album"]["image"].as_array()?[2]["#text"]
-            .as_str()
-            .map(|s| String::from(s));
+        self.image = match data["album"]["image"].as_array() {
+            None => None,
+            Some(x) => x[2]["#text"].as_str().map(|s| String::from(s)),
+        };
 
         self.compute_score();
 
@@ -113,6 +107,26 @@ impl Album {
 
     pub fn get_score(&self) -> Option<Ratio<i64>> {
         self.score
+    }
+
+    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>) {
+        for album in user_albums.iter().map(|x| Album::parse_album(x)) {
+            //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
+            //insert returns false if same entry exists in a set
+            if albums.contains(&album) {
+                let mut old = albums.take(&album).unwrap();
+                old.incr_playcount(&album);
+                albums.insert(old);
+            } else {
+                albums.insert(album);
+            }
+        }
+    }
+
+    pub fn sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
+        let mut res: Vec<Album> = albums.into_iter().collect();
+        res.sort_by_key(|album| -album.get_count());
+        res
     }
 
     pub fn compare_decr(&self, other: &Album) -> Ordering {
@@ -143,7 +157,12 @@ impl Album {
             ));
             match current {
                 None => continue,
-                Some(x) => if x.score.is_some() {//continue;},
+                Some(x) => {
+                    if x.score.is_some() {
+                        //for example Prince 1999 appears to be 2-tracks on last.fm so should force file version
+                        //continue;
+                    }
+                }
             }
             let mut updated = (*(current.clone().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
@@ -151,6 +170,28 @@ impl Album {
             albums.replace(updated);
         }
         Ok(())
+    }
+
+    pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
+        let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();
+        top_none.sort_by_key(|x| -x.playcount);
+        top_none
+    }
+    pub fn with_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
+        let mut top_some: Vec<&Album> = albums.iter().filter(|x| x.score.is_some()).collect();
+        top_some.sort_by(|x, y| y.score.unwrap().partial_cmp(&x.score.unwrap()).unwrap());
+        top_some
+    }
+
+    pub fn get_images(albums: &Vec<&Album>) -> Vec<String> {
+        let mut cover_urls: Vec<String> = Vec::new();
+        for album in albums.iter() {
+            match &album.image {
+                Some(x) => cover_urls.push(download_image(&x).unwrap_or(String::from("blank.png"))),
+                _ => cover_urls.push(String::from("blank.png")),
+            }
+        }
+        cover_urls
     }
 }
 impl PartialEq for Album {
@@ -187,6 +228,7 @@ pub fn get_users() -> String {
         fs::read_to_string("users.txt").expect("Something went wrong reading the users.txt file");
     contents
 }
+
 pub fn get_key() -> String {
     let contents =
         fs::read_to_string("key.txt").expect("Something went wrong reading the key.txt file");
@@ -203,6 +245,32 @@ pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::
     Ok(answer)
 }
 
+///returns false if album shouldn't be considered
+pub fn top_scores_update(
+    album: &Album,
+    top_number: usize,
+    scores: &mut BinaryHeap<Ratio<i64>>,
+) -> bool {
+    let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
+
+    match album.get_score() {
+        Some(score) => {
+            if score < smallest && scores.len() < top_number {
+                scores.push(-score);
+                true
+            } else if score >= smallest {
+                scores.push(-score);
+                if scores.len() > top_number {
+                    scores.pop();
+                }
+                true
+            } else {
+                false
+            }
+        }
+        None => true,
+    }
+}
 pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
     let mut response = reqwest::get(target)?;
     let mut result;
@@ -236,15 +304,28 @@ pub fn nones_to_file(nones: &Vec<&Album>) -> Result<(), std::io::Error> {
     Ok(())
 }
 
+pub fn sleep(x: u64) {
+    std::thread::sleep(std::time::Duration::from_millis(x));
+}
+
+pub fn wants_again() -> Result<bool, std::io::Error> {
+    let mut answer = String::new();
+    std::io::stdin().read_line(&mut answer)?;
+    if answer.chars().next().unwrap_or('Y') == 'N' {
+        Ok(false)
+    } else {
+        Ok(true)
+    }
+}
+
 pub mod drawer {
 
     pub fn collage(images: Vec<String>, x: u32, y: u32) {
-
         use image::GenericImage;
 
         let mut img = image::ImageBuffer::new(174 * x, 174 * y);
 
-        for i in 0..(x*y) as u32 {
+        for i in 0..(x * y) as u32 {
             let img2 = image::open(images[i as usize].clone()).unwrap();
 
             img.copy_from(&img2, 174 * (i % x), 174 * (i / y));

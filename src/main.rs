@@ -1,10 +1,11 @@
 use group_chart::*;
 use num_rational::Ratio;
-use std::collections::BTreeSet;
-use std::{thread, time};
+use std::collections::{BTreeSet, BinaryHeap};
 
 fn main() {
-    let x_collage = 6; let y_collage = 6;
+    let x_collage = 6;
+    let y_collage = 6;
+    let period = "7days";
     let top_number = (x_collage * y_collage) as usize;
 
     let users = get_users();
@@ -17,143 +18,129 @@ fn main() {
     let no_users = users.len();
 
     for (progress, user) in users.iter().enumerate() {
-        let mut user_data = serde_json::Value::Null;
-        while true {
-            let mut user_data1 = get_chart(user, &key, "7days");
+        let user_data: serde_json::Value = loop {
+            let user_data1 = get_chart(user, &key, period);
 
-            match user_data1 {
+            let user_data1 = match user_data1 {
                 Err(x) => {
-                    eprintln!("Error reading user {}. Continue to next user. {:?}", user, x);
+                    eprintln!(
+                        "Couldn't aquire data for user {} with error {:?}\n trying again in a second...",
+                        user, x
+                    );
+                    sleep(1000);
                     continue;
                 }
-                _ => (),
-            }
-
-            let mut user_data1 = user_data1.unwrap();
+                Ok(x) => x,
+            };
 
             if user_data1["error"] == serde_json::Value::Null {
-                user_data = user_data1.clone();
-                break;
-            }
-            else {
+                break user_data1;
+            } else {
                 let error_code = user_data1["error"].as_i64().unwrap();
                 eprintln!("Error code {} while reading user {}", error_code, user);
                 if error_code == 29 {
                     eprintln!("waiting...");
-                    thread::sleep(time::Duration::from_millis(2000));
-                }
-                else {
+                    sleep(2000);
+                } else {
                     eprintln!("escaping");
-                    break;
+                    break serde_json::Value::Null;
                 }
             }
-        }
-
-        if !user_data["topalbums"]["album"].is_array() {
-            eprintln!("User {} has no scrobbles. Continue to next user.", user);
-            continue;
         };
 
-        let user_albums: &Vec<serde_json::Value> =
-            user_data["topalbums"]["album"].as_array().unwrap();
-
-        for album in user_albums.iter().map(|x| Album::parse_album(x)) {
-            //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
-            //insert returns false if same entry exists in a set
-            if albums.contains(&album) {
-                let mut old = albums.take(&album).unwrap();
-                old.incr_playcount(&album);
-                albums.insert(old);
-            } else {
-                albums.insert(album);
+        let user_albums = match user_data["topalbums"]["album"].as_array() {
+            None => {
+                eprintln!("User {} has no scrobbles. Continue to next user.", user);
+                continue;
             }
-        }
+            Some(x) => x,
+        };
+
+        Album::insert(&mut albums, user_albums);
 
         println!("{}/{}", progress + 1, no_users);
-        thread::sleep(time::Duration::from_millis(125)); // don't overuse server
+        sleep(125); // don't overuse server
     }
 
-    let mut albums: Vec<Album> = albums.into_iter().collect();
+    //descending sorted Vec
+    let albums = Album::sorted_vec(albums);
 
-    albums.sort_by_key(|album| -album.get_count());
-
-    let mut cover_urls: Vec<String> = Vec::new();
     let mut top_albums = BTreeSet::new();
-    let mut scores: BTreeSet<Ratio<i64>> = BTreeSet::new(); //BTreeSet doesnt hold multiple copies of the same score, however, it is not so bad
+    let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
 
     let albums_no = albums.len();
     for (i, mut album) in albums.into_iter().enumerate() {
         eprintln!("{}/{}", i, albums_no);
-        thread::sleep(time::Duration::from_millis(125));
-        album.more_info(&key);
-        let smallest = scores
-            .iter()
-            .next()
-            .cloned()
-            .unwrap_or(Ratio::new(100000, 1));
+        sleep(125);
+
+        loop {
+            match album.more_info(&key) {
+                Ok(_) => break,
+                Err(x) => {
+                    eprintln!("error {:?} while reading {}", x, album);
+                    sleep(1000);
+                }
+            }
+        }
+
+        let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
+
+        //some prunning
         if top_albums.len() >= top_number {
             if Ratio::new(album.get_count(), 2) < smallest {
                 break;
             }
         }
-        match album.get_score() {
-            Some(score) => {
-                if score < smallest && scores.len() < top_number {
-                    scores.insert(score);
-                } else if score >= smallest {
-                    scores.insert(score);
-                    if scores.len() > top_number {
-                        scores = scores.into_iter().rev().take(top_number).collect();
-                    }
-                } else {
-                    continue;
+
+        //update the list of top scores used for prunning and returns yes if album should be included into top list
+        if top_scores_update(&album, top_number, &mut scores) {
+            top_albums.insert(album);
+        }
+    }
+    match Album::tracks_from_file(&mut top_albums) {
+        Err(x) => eprintln!(
+            "{:?}\nerror ocurred during reading manual_tracks.txt, proceeding...",
+            x
+        ),
+        _ => (),
+    }
+
+    let top_none = Album::with_no_score(&top_albums);
+
+    while nones_to_file(&top_none).is_err() {
+        eprintln!("error ocurred durring attempt to write albums without score to a file\n Do you want to try again? Y/N");
+        match wants_again() {
+            Err(x) => eprintln!("error: {}\n trying again...", x),
+            Ok(x) => {
+                if !x {
+                    break;
                 }
             }
-            None => (),
         }
-
-        top_albums.insert(album);
     }
-    Album::tracks_from_file(&mut top_albums);
-
-    let mut top_none: Vec<&Album> = top_albums
-        .iter()
-        .filter(|x| x.get_score().is_none())
-        .collect();
-    top_none.sort_by_key(|x| -x.get_count());
-    let top_none = top_none.drain(..);
-
-    eprintln!("none {}", top_none.len());
-
-    nones_to_file(&(top_none.collect()));
 
     println!("update manual tracks file and enter anything to proceed");
-    std::io::stdin().read_line(&mut String::new());
+    std::io::stdin().read_line(&mut String::new()).unwrap_or(0);
 
-    Album::tracks_from_file(&mut top_albums);
-
-    let mut top_some: Vec<&Album> = top_albums
-        .iter()
-        .filter(|x| x.get_score().is_some())
-        .collect();
-    top_some.sort_by(|x, y| {
-        y.get_score()
-            .unwrap()
-            .partial_cmp(&x.get_score().unwrap())
-            .unwrap()
-    });
-    let mut top_some = top_some.drain(0..top_number);
-    eprintln!("some {}", top_some.len());
-
-    for _ in 0..top_number {
-        let album = top_some.next().unwrap();
-
-        println!("{}", album);
-
-        match &album.image {
-            Some(x) => cover_urls.push(download_image(&x).unwrap_or(String::from("blank.png"))),
-            _ => cover_urls.push(String::from("blank.png")),
+    while Album::tracks_from_file(&mut top_albums).is_err() {
+        eprintln!("error ocurred durring attempt to read scores from file\n Do you want to try again? Y/N");
+        match wants_again() {
+            Err(x) => eprintln!("error: {}\n trying again...", x),
+            Ok(x) => {
+                if !x {
+                    break;
+                }
+            }
         }
     }
+
+    let mut top: Vec<&Album> = Album::with_score(&top_albums)
+        .into_iter()
+        .take(top_number)
+        .collect();
+
+    let cover_urls = Album::get_images(&top);
+    top.iter_mut().fold((), |_, x| println!("{}", x));
+
     drawer::collage(cover_urls, x_collage, y_collage);
 }
