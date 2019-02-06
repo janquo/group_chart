@@ -87,7 +87,7 @@ fn main() {
         let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
-        if top_albums.len() >= top_number && Ratio::new(album.get_count(), 2) < smallest {
+        if top_albums.len() >= top_number && Ratio::new(album.playcount(), 2) < smallest {
                 break;
         }
 
@@ -141,5 +141,5 @@ fn main() {
     let cover_urls = Album::get_images(&top);
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
-    drawer::collage(cover_urls, x_images, y_images);
+    drawer::collage(cover_urls, top, x_images, y_images);
 }

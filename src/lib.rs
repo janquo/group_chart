@@ -101,13 +101,20 @@ impl Album {
         self.playcount += other.playcount;
     }
 
-    pub fn get_count(&self) -> i64 {
+    pub fn playcount(&self) -> i64 {
         self.playcount
     }
+    pub fn title(&self) -> &String {
+        &self.title
+    }
+    pub fn artist(&self) -> &String {
+        &self.artist
+    }
 
-    pub fn get_score(&self) -> Option<Ratio<i64>> {
+    pub fn score(&self) -> Option<Ratio<i64>> {
         self.score
     }
+
 
     pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>) {
         for album in user_albums.iter().map(|x| Album::parse_album(x)) {
@@ -125,7 +132,7 @@ impl Album {
 
     pub fn sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
         let mut res: Vec<Album> = albums.into_iter().collect();
-        res.sort_by_key(|album| -album.get_count());
+        res.sort_by_key(|album| -album.playcount());
         res
     }
 
@@ -253,7 +260,7 @@ pub fn top_scores_update(
 ) -> bool {
     let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
 
-    match album.get_score() {
+    match album.score() {
         Some(score) => {
             if score < smallest && scores.len() < top_number {
                 scores.push(-score);
@@ -320,15 +327,15 @@ pub fn wants_again() -> Result<bool, std::io::Error> {
 
 pub mod drawer {
 
-    pub fn collage(images: Vec<String>, x: u32, y: u32) {
+    pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, x: u32, y: u32) {
         use image::GenericImage;
 
         let mut img = image::ImageBuffer::new(174 * x, 174 * y);
 
-        for i in 0..(x * y) as u32 {
-            let img2 = image::open(images[i as usize].clone()).unwrap();
+        for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
+            let img2 = image::open(image).unwrap();
             let mut img2 = img2.to_rgba();
-            //draw_description(&mut img2);
+            draw_description(&mut img2, album.artist(), album.title());
             img.copy_from(&img2, 174 * (i % x), 174 * (i / y));
         }
         img.save("test.png").unwrap();
@@ -343,34 +350,36 @@ pub mod drawer {
             .into_font()
             .unwrap();
 
-        let height = 7.5;
+        /*let font_shadow = Vec::from(include_bytes!("comicbd.ttf") as &[u8]);
+        let font_shadow = FontCollection::from_bytes(font_shadow)
+            .unwrap()
+            .into_font()
+            .unwrap();*/
+
+        let height = 8.5;
         let scale = Scale {
             x: height * 1.5,
             y: height,
         };
-        let draw = |txt, y|
+        let mut draw = |fnt, txt, x, y, col|
             imageproc::drawing::draw_text_mut(
                 img,
-                image::Rgba([255u8, 255u8, 255u8, 255u8]),
-                0,
+                image::Rgba([col, col, col, col]),
+                x,
                 y,
                 scale,
-                &font,
+                fnt,
                 txt,
             );
+        let mut with_shadow = |txt, y| {
+            draw(&font, txt, 0, y, 0u8);
+            draw(&font, txt, 0, y + 2u32, 0u8);
+            draw(&font, txt, 2, y + 0u32, 0u8);
+            draw(&font, txt, 2, y + 2u32, 0u8);
+            draw(&font, txt, 1, y + 1u32, 240u8);
+        };
 
-        draw(author, 0);
-        draw(author, 9);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn drawing() {
-        let mut images = vec![String::from("blank.png"),String::from("blank.png"),String::from("blank.png"),String::from("blank.png")];
-        assert!(drawer::collage(images, 2, 2) == ());
+        with_shadow(author, 0);
+        with_shadow(title, 9);
     }
 }
