@@ -3,10 +3,10 @@ use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap};
 
 fn main() {
-    let x_collage = 6;
-    let y_collage = 6;
-    let period = "7days";
-    let top_number = (x_collage * y_collage) as usize;
+    let x_images = 6;
+    let y_images = 6;
+    let period = "7day"; //overall | 7day | 1month | 3month | 6month | 12month
+    let top_number =  (x_images * y_images) as usize;
 
     let users = get_users();
     let users: Vec<&str> = users.lines().collect();
@@ -14,6 +14,7 @@ fn main() {
     let key = get_key();
 
     let mut albums: BTreeSet<Album> = BTreeSet::new();
+
 
     let no_users = users.len();
 
@@ -86,13 +87,11 @@ fn main() {
         let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
-        if top_albums.len() >= top_number {
-            if Ratio::new(album.get_count(), 2) < smallest {
+        if top_albums.len() >= top_number && Ratio::new(album.get_count(), 2) < smallest {
                 break;
-            }
         }
 
-        //update the list of top scores used for prunning and returns yes if album should be included into top list
+        //if a score belongs to top or there is no score then insert
         if top_scores_update(&album, top_number, &mut scores) {
             top_albums.insert(album);
         }
@@ -142,5 +141,5 @@ fn main() {
     let cover_urls = Album::get_images(&top);
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
-    drawer::collage(cover_urls, x_collage, y_collage);
+    drawer::collage(cover_urls, x_images, y_images);
 }

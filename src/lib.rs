@@ -327,14 +327,14 @@ pub mod drawer {
 
         for i in 0..(x * y) as u32 {
             let img2 = image::open(images[i as usize].clone()).unwrap();
-
+            let mut img2 = img2.to_rgba();
+            //draw_description(&mut img2);
             img.copy_from(&img2, 174 * (i % x), 174 * (i / y));
         }
-        //draw_description(&mut img);
         img.save("test.png").unwrap();
     }
 
-    fn draw_description(img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>) {
+    fn draw_description(img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>, author: &String, title: &String) {
         use rusttype::{FontCollection, Scale};
 
         let font = Vec::from(include_bytes!("comic.ttf") as &[u8]);
@@ -343,19 +343,34 @@ pub mod drawer {
             .into_font()
             .unwrap();
 
-        let height = 12.4;
+        let height = 7.5;
         let scale = Scale {
-            x: height * 2.0,
+            x: height * 1.5,
             y: height,
         };
-        imageproc::drawing::draw_text_mut(
-            img,
-            image::Rgba([0u8, 0u8, 255u8, 255u8]),
-            0,
-            0,
-            scale,
-            &font,
-            "Hello, world!",
-        );
+        let draw = |txt, y|
+            imageproc::drawing::draw_text_mut(
+                img,
+                image::Rgba([255u8, 255u8, 255u8, 255u8]),
+                0,
+                y,
+                scale,
+                &font,
+                txt,
+            );
+
+        draw(author, 0);
+        draw(author, 9);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn drawing() {
+        let mut images = vec![String::from("blank.png"),String::from("blank.png"),String::from("blank.png"),String::from("blank.png")];
+        assert!(drawer::collage(images, 2, 2) == ());
     }
 }
