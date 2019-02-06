@@ -115,7 +115,6 @@ impl Album {
         self.score
     }
 
-
     pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>) {
         for album in user_albums.iter().map(|x| Album::parse_album(x)) {
             //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
@@ -230,8 +229,8 @@ impl std::fmt::Display for Album {
     }
 }
 
-pub fn parse_args(args: Vec<String>) -> (u32, u32, String) {
-    let (mut x, mut y, mut period) = (5u32, 5u32, String::from("7day"));
+pub fn parse_args(args: Vec<String>) -> (u32, u32, String, bool) {
+    let (mut x, mut y, mut period, mut captions) = (5u32, 5u32, String::from("7day"), true);
     let mut args = args.into_iter();
     let mut arg = args.next();
     while arg.is_some() {
@@ -239,11 +238,12 @@ pub fn parse_args(args: Vec<String>) -> (u32, u32, String) {
             "-x" => x = args.next().unwrap().parse().unwrap(),
             "-y" => y = args.next().unwrap().parse().unwrap(),
             "-p" => period = args.next().unwrap(),
+            "-c" => captions = false,
             _ => (),
         }
         arg = args.next();
     }
-    (x, y, period)
+    (x, y, period, captions)
 }
 
 pub fn get_users() -> String {
@@ -343,7 +343,13 @@ pub fn wants_again() -> Result<bool, std::io::Error> {
 
 pub mod drawer {
 
-    pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, x: u32, y: u32) {
+    pub fn collage(
+        images: Vec<String>,
+        albums: Vec<&super::Album>,
+        x: u32,
+        y: u32,
+        captions: bool,
+    ) {
         use image::GenericImage;
 
         let mut img = image::ImageBuffer::new(174 * x, 174 * y);
@@ -351,13 +357,19 @@ pub mod drawer {
         for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
             let img2 = image::open(image).unwrap();
             let mut img2 = img2.to_rgba();
-            draw_description(&mut img2, album.artist(), album.title());
+            if captions {
+                draw_description(&mut img2, album.artist(), album.title());
+            }
             img.copy_from(&img2, 174 * (i % x), 174 * (i / x));
         }
         img.save("test.png").unwrap();
     }
 
-    fn draw_description(img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>, author: &String, title: &String) {
+    fn draw_description(
+        img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>,
+        author: &String,
+        title: &String,
+    ) {
         use rusttype::{FontCollection, Scale};
 
         let font = Vec::from(include_bytes!("comic.ttf") as &[u8]);
@@ -377,7 +389,7 @@ pub mod drawer {
             x: height * 1.5,
             y: height,
         };
-        let mut draw = |fnt, txt, x, y, col|
+        let mut draw = |fnt, txt, x, y, col| {
             imageproc::drawing::draw_text_mut(
                 img,
                 image::Rgba([col, col, col, col]),
@@ -386,7 +398,8 @@ pub mod drawer {
                 scale,
                 fnt,
                 txt,
-            );
+            )
+        };
         let mut with_shadow = |txt, y| {
             draw(&font, txt, 0, y, 0u8);
             draw(&font, txt, 0, y + 2u32, 0u8);

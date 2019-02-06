@@ -5,9 +5,9 @@ use std::collections::{BTreeSet, BinaryHeap};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     //overall | 7day | 1month | 3month | 6month | 12month
-    let (x_images, y_images, period) = parse_args(args);
+    let (x_images, y_images, period, captions) = parse_args(args);
 
-    let top_number =  (x_images * y_images) as usize;
+    let top_number = (x_images * y_images) as usize;
 
     let users = get_users();
     let users: Vec<&str> = users.lines().collect();
@@ -15,7 +15,6 @@ fn main() {
     let key = get_key();
 
     let mut albums: BTreeSet<Album> = BTreeSet::new();
-
 
     let no_users = users.len();
 
@@ -89,7 +88,7 @@ fn main() {
 
         //some prunning
         if top_albums.len() >= top_number && Ratio::new(album.playcount(), 2) < smallest {
-                break;
+            break;
         }
 
         //if a score belongs to top or there is no score then insert
@@ -142,5 +141,5 @@ fn main() {
     let cover_urls = Album::get_images(&top);
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
-    drawer::collage(cover_urls, top, x_images, y_images);
+    drawer::collage(cover_urls, top, x_images, y_images, captions);
 }
