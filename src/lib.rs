@@ -230,6 +230,22 @@ impl std::fmt::Display for Album {
     }
 }
 
+pub fn parse_args(args: Vec<String>) -> (u32, u32, String) {
+    let (mut x, mut y, mut period) = (5u32, 5u32, String::from("7day"));
+    let mut args = args.into_iter();
+    let mut arg = args.next();
+    while arg.is_some() {
+        match arg.unwrap().as_str() {
+            "-x" => x = args.next().unwrap().parse().unwrap(),
+            "-y" => y = args.next().unwrap().parse().unwrap(),
+            "-p" => period = args.next().unwrap(),
+            _ => (),
+        }
+        arg = args.next();
+    }
+    (x, y, period)
+}
+
 pub fn get_users() -> String {
     let contents =
         fs::read_to_string("users.txt").expect("Something went wrong reading the users.txt file");
@@ -336,7 +352,7 @@ pub mod drawer {
             let img2 = image::open(image).unwrap();
             let mut img2 = img2.to_rgba();
             draw_description(&mut img2, album.artist(), album.title());
-            img.copy_from(&img2, 174 * (i % x), 174 * (i / y));
+            img.copy_from(&img2, 174 * (i % x), 174 * (i / x));
         }
         img.save("test.png").unwrap();
     }

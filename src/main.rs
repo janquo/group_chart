@@ -3,9 +3,10 @@ use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap};
 
 fn main() {
-    let x_images = 6;
-    let y_images = 6;
-    let period = "7day"; //overall | 7day | 1month | 3month | 6month | 12month
+    let args: Vec<String> = std::env::args().collect();
+    //overall | 7day | 1month | 3month | 6month | 12month
+    let (x_images, y_images, period) = parse_args(args);
+
     let top_number =  (x_images * y_images) as usize;
 
     let users = get_users();
@@ -20,7 +21,7 @@ fn main() {
 
     for (progress, user) in users.iter().enumerate() {
         let user_data: serde_json::Value = loop {
-            let user_data1 = get_chart(user, &key, period);
+            let user_data1 = get_chart(user, &key, &period);
 
             let user_data1 = match user_data1 {
                 Err(x) => {
