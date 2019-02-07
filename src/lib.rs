@@ -28,10 +28,11 @@ pub struct Album {
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
     mbid: Option<String>,
+    best_contributor: (String, i64),
 }
 
 impl Album {
-    fn parse_album(data: &Value) -> Album {
+    fn parse_album(data: &Value, user: String) -> Album {
         Album {
             title: String::from(data["name"].as_str().unwrap()),
             artist: String::from(data["artist"]["name"].as_str().unwrap()),
@@ -40,6 +41,7 @@ impl Album {
             score: None,
             image: None,
             mbid: data["mbid"].as_str().map(|s| String::from(s)),
+            best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
         }
     }
 
@@ -52,6 +54,7 @@ impl Album {
             score: None,
             image: None,
             mbid: None,
+            best_contributor: (String::from("NaN"), 0),
         }
     }
     pub fn more_info(&mut self, key: &str) -> Result<(), reqwest::Error> {
@@ -97,8 +100,9 @@ impl Album {
         self.score = Some(Ratio::new(self.playcount, self.tracks.unwrap() as i64));
     }
 
-    pub fn incr_playcount(&mut self, other: &Album) {
+    pub fn merge(&mut self, other: &Album) {
         self.playcount += other.playcount;
+        if self.best_contributor.1 < other.best_contributor.1 {self.best_contributor = other.best_contributor.clone();}
     }
 
     pub fn playcount(&self) -> i64 {
@@ -115,13 +119,13 @@ impl Album {
         self.score
     }
 
-    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>) {
-        for album in user_albums.iter().map(|x| Album::parse_album(x)) {
+    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>, user: &str) {
+        for album in user_albums.iter().map(|x| Album::parse_album(x, String::from(user))) {
             //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
             //insert returns false if same entry exists in a set
             if albums.contains(&album) {
                 let mut old = albums.take(&album).unwrap();
-                old.incr_playcount(&album);
+                old.merge(&album);
                 albums.insert(old);
             } else {
                 albums.insert(album);
@@ -220,11 +224,13 @@ impl std::fmt::Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "{} - {}, with score: {} ({})",
+            "{} - {}, with score: {} ({})\nBest contributor: {} with {} scrobbles",
             self.artist,
             self.title,
             self.playcount,
-            self.score.unwrap_or(Ratio::new(0, 1))
+            self.score.unwrap_or(Ratio::new(0, 1)),
+            self.best_contributor.0,
+            self.best_contributor.1,
         )
     }
 }

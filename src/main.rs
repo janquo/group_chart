@@ -57,7 +57,7 @@ fn main() {
             Some(x) => x,
         };
 
-        Album::insert(&mut albums, user_albums);
+        Album::insert(&mut albums, user_albums, user);
 
         println!("{}/{}", progress + 1, no_users);
         sleep(125); // don't overuse server
