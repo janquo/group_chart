@@ -29,6 +29,7 @@ pub struct Album {
     pub image: Option<String>,
     mbid: Option<String>,
     best_contributor: (String, i64),
+    no_contributors: i64,
 }
 
 impl Album {
@@ -42,6 +43,7 @@ impl Album {
             image: None,
             mbid: data["mbid"].as_str().map(|s| String::from(s)),
             best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
+            no_contributors: 1,
         }
     }
 
@@ -55,6 +57,7 @@ impl Album {
             image: None,
             mbid: None,
             best_contributor: (String::from("NaN"), 0),
+            no_contributors: 0,
         }
     }
     pub fn more_info(&mut self, key: &str) -> Result<(), reqwest::Error> {
@@ -101,6 +104,7 @@ impl Album {
     }
 
     pub fn merge(&mut self, other: &Album) {
+        self.no_contributors += 1;
         self.playcount += other.playcount;
         if self.best_contributor.1 < other.best_contributor.1 {self.best_contributor = other.best_contributor.clone();}
     }
@@ -224,11 +228,12 @@ impl std::fmt::Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "{} - {}, with score: {} ({})\nBest contributor: {} with {} scrobbles",
+            "{} - {}, with score: {} ({})\n{} people has contributed, top: {} with {} scrobbles",
             self.artist,
             self.title,
             self.playcount,
             self.score.unwrap_or(Ratio::new(0, 1)),
+            self.no_contributors,
             self.best_contributor.0,
             self.best_contributor.1,
         )
@@ -265,7 +270,7 @@ pub fn get_key() -> String {
 }
 
 pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::Error> {
-    let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&format=json",
+    let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
                               user, key, period);
     let mut response = reqwest::get(&request_url)?;
 

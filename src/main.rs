@@ -39,7 +39,7 @@ fn main() {
             } else {
                 let error_code = user_data1["error"].as_i64().unwrap();
                 eprintln!("Error code {} while reading user {}", error_code, user);
-                if error_code == 29 {
+                if error_code == 29 || error_code == 8 {
                     eprintln!("waiting...");
                     sleep(2000);
                 } else {
