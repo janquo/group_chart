@@ -228,12 +228,13 @@ impl std::fmt::Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "{} - {}, with score: {} ({})\n{} people has contributed, top: {} with {} scrobbles",
+            "{} - {}, with score: {} ({})\n{} {} contributed, top: {} with {} scrobbles",
             self.artist,
             self.title,
             self.playcount,
             self.score.unwrap_or(Ratio::new(0, 1)),
             self.no_contributors,
+            if self.no_contributors == 1 {"person has"} else {"people have"},
             self.best_contributor.0,
             self.best_contributor.1,
         )
@@ -275,7 +276,6 @@ pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::
     let mut response = reqwest::get(&request_url)?;
 
     let answer: Value = response.json()?;
-
     Ok(answer)
 }
 
@@ -383,7 +383,7 @@ pub mod drawer {
     ) {
         use rusttype::{FontCollection, Scale};
 
-        let font = Vec::from(include_bytes!("comic.ttf") as &[u8]);
+        let font = Vec::from(include_bytes!("steelfish.outline.ttf") as &[u8]);
         let font = FontCollection::from_bytes(font)
             .unwrap()
             .into_font()
@@ -419,7 +419,10 @@ pub mod drawer {
             draw(&font, txt, 1, y + 1u32, 240u8);
         };
 
-        with_shadow(author, 0);
-        with_shadow(title, 9);
+        //with_shadow(author, 0);
+        //with_shadow(title, 9);
+
+        draw(&font, author, 0, 0, 0u8);
+        draw(&font, title, 0, 9, 0u8);
     }
 }
