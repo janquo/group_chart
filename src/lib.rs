@@ -88,7 +88,7 @@ impl Album {
 
         self.image = match data["album"]["image"].as_array() {
             None => None,
-            Some(x) => x[2]["#text"].as_str().map(|s| String::from(s)),
+            Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
         };
 
         self.compute_score();
@@ -363,7 +363,7 @@ pub mod drawer {
     ) {
         use image::GenericImage;
 
-        let mut img = image::ImageBuffer::new(174 * x, 174 * y);
+        let mut img = image::ImageBuffer::new(300 * x, 300 * y);
 
         for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
             let img2 = image::open(image).unwrap();
@@ -371,7 +371,7 @@ pub mod drawer {
             if captions {
                 draw_description(&mut img2, album.artist(), album.title());
             }
-            img.copy_from(&img2, 174 * (i % x), 174 * (i / x));
+            img.copy_from(&img2, 300 * (i % x), 300 * (i / x));
         }
         img.save("test.png").unwrap();
     }
@@ -383,21 +383,21 @@ pub mod drawer {
     ) {
         use rusttype::{FontCollection, Scale};
 
-        let font = Vec::from(include_bytes!("steelfish.outline.ttf") as &[u8]);
+        let font = Vec::from(include_bytes!("berlin-email.berlin-email.ttf") as &[u8]);
         let font = FontCollection::from_bytes(font)
             .unwrap()
             .into_font()
             .unwrap();
 
-        /*let font_shadow = Vec::from(include_bytes!("comicbd.ttf") as &[u8]);
+        let font_shadow = Vec::from(include_bytes!("berlin-email.berlin-email-schaddow.ttf") as &[u8]);
         let font_shadow = FontCollection::from_bytes(font_shadow)
             .unwrap()
             .into_font()
-            .unwrap();*/
+            .unwrap();
 
-        let height = 8.5;
+        let height = 25.0;
         let scale = Scale {
-            x: height * 1.5,
+            x: height,
             y: height,
         };
         let mut draw = |fnt, txt, x, y, col| {
@@ -413,16 +413,10 @@ pub mod drawer {
         };
         let mut with_shadow = |txt, y| {
             draw(&font, txt, 0, y, 0u8);
-            draw(&font, txt, 0, y + 2u32, 0u8);
-            draw(&font, txt, 2, y + 0u32, 0u8);
-            draw(&font, txt, 2, y + 2u32, 0u8);
-            draw(&font, txt, 1, y + 1u32, 240u8);
+            draw(&font_shadow, txt, 0, y, 255u8);
         };
 
-        //with_shadow(author, 0);
-        //with_shadow(title, 9);
-
-        draw(&font, author, 0, 0, 0u8);
-        draw(&font, title, 0, 9, 0u8);
+        with_shadow(author, 0);
+        with_shadow(title, 25);
     }
 }
