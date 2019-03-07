@@ -19,6 +19,8 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 
+pub mod drawer;
+
 #[derive(Clone)]
 pub struct Album {
     title: String,
@@ -228,13 +230,28 @@ impl std::fmt::Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "{} - {}, with score: {} ({})\n{} {} contributed, top: {} with {} scrobbles",
+            r#"<div class="card mb-3">
+                <div class="row no-gutters">
+                <div class="col-md-4">
+                <img alt="alt" class="card-img" src="{}">
+                </div>
+                <div class="col-md-8">
+                <div class="card-body">
+                <h5 class="card-title">{} - {}</h5>
+                <p class="card-text">Scrobbles: {}</p>
+                <p class="card-text">Score: {:.2}</p>
+                <p class="card-text">Contributors number: {}</p>
+                <p class="card-text">Top: {} - {} scrobbles</p>
+                </div>
+                </div>
+                </div>
+                </div>"#,
+            match &self.image {Some(x) => &x[..], None => "someadress.png",},
             self.artist,
             self.title,
             self.playcount,
-            self.score.unwrap_or(Ratio::new(0, 1)),
+            match &self.score {Some(x) => (*x.numer() as f64) / (*x.denom() as f64), None => 0.0,},
             self.no_contributors,
-            if self.no_contributors == 1 {"person has"} else {"people have"},
             self.best_contributor.0,
             self.best_contributor.1,
         )
@@ -349,74 +366,5 @@ pub fn wants_again() -> Result<bool, std::io::Error> {
         Ok(false)
     } else {
         Ok(true)
-    }
-}
-
-pub mod drawer {
-
-    pub fn collage(
-        images: Vec<String>,
-        albums: Vec<&super::Album>,
-        x: u32,
-        y: u32,
-        captions: bool,
-    ) {
-        use image::GenericImage;
-
-        let mut img = image::ImageBuffer::new(300 * x, 300 * y);
-
-        for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
-            let img2 = image::open(image).unwrap();
-            let mut img2 = img2.to_rgba();
-            if captions {
-                draw_description(&mut img2, album.artist(), album.title());
-            }
-            img.copy_from(&img2, 300 * (i % x), 300 * (i / x));
-        }
-        img.save("test.png").unwrap();
-    }
-
-    fn draw_description(
-        img: &mut image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>,
-        author: &String,
-        title: &String,
-    ) {
-        use rusttype::{FontCollection, Scale};
-
-        let font = Vec::from(include_bytes!("berlin-email.berlin-email.ttf") as &[u8]);
-        let font = FontCollection::from_bytes(font)
-            .unwrap()
-            .into_font()
-            .unwrap();
-
-        let font_shadow = Vec::from(include_bytes!("berlin-email.berlin-email-schaddow.ttf") as &[u8]);
-        let font_shadow = FontCollection::from_bytes(font_shadow)
-            .unwrap()
-            .into_font()
-            .unwrap();
-
-        let height = 25.0;
-        let scale = Scale {
-            x: height,
-            y: height,
-        };
-        let mut draw = |fnt, txt, x, y, col| {
-            imageproc::drawing::draw_text_mut(
-                img,
-                image::Rgba([col, col, col, col]),
-                x,
-                y,
-                scale,
-                fnt,
-                txt,
-            )
-        };
-        let mut with_shadow = |txt, y| {
-            draw(&font, txt, 0, y, 0u8);
-            draw(&font_shadow, txt, 0, y, 255u8);
-        };
-
-        with_shadow(author, 0);
-        with_shadow(title, 25);
     }
 }
