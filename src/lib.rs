@@ -246,7 +246,7 @@ impl std::fmt::Display for Album {
                 </div>
                 </div>
                 </div>"#,
-            match &self.image {Some(x) => &x[..], None => "someadress.png",},
+            match &self.image {Some(x) => &x[..], None => "blank.png",},
             self.artist,
             self.title,
             self.playcount,
