@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "group_chart"
-version = "1.5.3"
+version = "1.5.4"
 dependencies = [
  "image 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "imageproc 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",

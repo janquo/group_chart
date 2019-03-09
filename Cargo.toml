@@ -1,6 +1,6 @@
 [package]
 name = "group_chart"
-version = "1.5.3"
+version = "1.5.4"
 authors = ["Jan Guzik <jan.guzik@cs.ox.ac.uk>"]
 edition = "2018"
 

@@ -108,7 +108,8 @@ impl Album {
     pub fn merge(&mut self, other: &Album) {
         self.no_contributors += 1;
         self.playcount += other.playcount;
-        if self.best_contributor.1 < other.best_contributor.1 {self.best_contributor = other.best_contributor.clone();}
+        if self.best_contributor.1 < other.best_contributor.1 {self.best_contributor
+             = other.best_contributor.clone();}
     }
 
     pub fn playcount(&self) -> i64 {
@@ -180,7 +181,7 @@ impl Album {
                     }
                 }
             }
-            let mut updated = (*(current.clone().unwrap())).clone();
+            let mut updated = (*(current.as_ref().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
             updated.compute_score();
             albums.replace(updated);
@@ -258,21 +259,22 @@ impl std::fmt::Display for Album {
     }
 }
 
-pub fn parse_args(args: Vec<String>) -> (u32, u32, String, bool) {
+pub fn parse_args(args: Vec<String>) -> Result<(u32, u32, String, bool), i32> {
     let (mut x, mut y, mut period, mut captions) = (5u32, 5u32, String::from("7day"), true);
     let mut args = args.into_iter();
-    let mut arg = args.next();
-    while arg.is_some() {
-        match arg.unwrap().as_str() {
-            "-x" => x = args.next().unwrap().parse().unwrap(),
-            "-y" => y = args.next().unwrap().parse().unwrap(),
-            "-p" => period = args.next().unwrap(),
+    args.next();
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-x" => x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
+            "-y" => y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
+            "-p" => period = args.next().ok_or(1)?,
             "-c" => captions = false,
-            _ => (),
+            _ => return Err(3),
         }
-        arg = args.next();
     }
-    (x, y, period, captions)
+    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&period.as_str())
+        {return Err(4);}
+    Ok((x, y, period, captions))
 }
 
 pub fn get_users() -> String {
