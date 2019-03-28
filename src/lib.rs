@@ -13,11 +13,12 @@ extern crate serde_json;
 use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
-use std::collections::{BTreeSet, BinaryHeap};
+use std::collections::{BTreeSet, BinaryHeap, HashSet};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::hash::{Hash, Hasher};
 
 pub mod drawer;
 
@@ -62,7 +63,7 @@ impl Album {
             no_contributors: 0,
         }
     }
-    pub fn more_info(&mut self, key: &str) -> Result<(), reqwest::Error> {
+    pub fn more_info(&mut self, database: &HashSet<Album>, key: &str) -> Result<bool, reqwest::Error> {
         /* let request_url = if self.mbid.is_none()
             || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
         {
@@ -72,30 +73,38 @@ impl Album {
             format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&mbid={}&format=json",
                                                     key, self.mbid.clone().unwrap())
         };*/
-        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
-                          key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
+        if let Some(album) = database.get(&self) {
+            self.tracks = album.tracks;
+            self.image = album.image.clone();
 
-        let mut response = reqwest::get(&request_url)?;
+            self.compute_score();
 
-        let data = response.json();
-        let data: Value = match data {
-            Ok(x) => x,
-            _ => return Ok(()),
-        };
+            Ok(true)
+        } else {
+            let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
+                                      key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
 
-        self.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
-        if self.tracks == Some(0) {
-            self.tracks = None;
+            let mut response = reqwest::get(&request_url)?;
+
+            let data = response.json();
+            let data: Value = match data {
+                Ok(x) => x,
+                _ => return Ok(true), //not an ideal solution, but shouldn't happen
+            };
+
+            self.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
+            if self.tracks == Some(0) {
+                self.tracks = None;
+            }
+
+            self.image = match data["album"]["image"].as_array() {
+                None => None,
+                Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
+            };
+            self.compute_score();
+
+            Ok(false)
         }
-
-        self.image = match data["album"]["image"].as_array() {
-            None => None,
-            Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
-        };
-
-        self.compute_score();
-
-        Ok(())
     }
 
     fn compute_score(&mut self) {
@@ -159,7 +168,12 @@ impl Album {
     pub fn to_string_semic(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
     }
-
+    pub fn to_database_format(&self) -> String {
+        format!("{};{};{};{}\n", self.artist, self.title, self.tracks.unwrap_or(0), match &self.image {
+            Some(x) => &x[..],
+            None => "blank.png",
+        })
+    }
     pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
         let content = fs::read_to_string("manual_tracks.txt")?;
         for line in content.lines() {
@@ -189,6 +203,46 @@ impl Album {
         Ok(())
     }
 
+    pub fn load_database() -> Result<HashSet<Album>, Box<dyn Error>> {
+        let mut database: HashSet<Album> = HashSet::with_capacity(15000);
+
+        let content = fs::read_to_string("./data/database.txt")?;
+        for line in content.lines() {
+            let mut words = line.split(";");
+            let (artist, title, tracks, image) = (words.next(), words.next(), words.next(), words.next());
+            if artist == None || title == None {
+                continue;
+            }
+            let album = Album {
+                title: String::from(title.unwrap()),
+                artist: String::from(artist.unwrap()),
+                playcount: 0,
+                tracks: tracks.unwrap().parse().ok(),
+                score: None,
+                image: image.map(String::from),
+                mbid: None,
+                best_contributor: (String::from(""), 0),
+                no_contributors: 0,
+            };
+            if !database.insert(album) {
+                eprintln!("record doubled in a database");
+            }
+        }
+        Ok(database)
+    }
+
+    pub fn add_to_database(album: &Album) -> std::io::Result<()> {
+        let mut file = std::fs::OpenOptions::new()
+            .append(true).create(true)
+            .open("./data/database.txt")?;
+
+        file.write_all(
+            album
+                .to_database_format()
+                .as_bytes(),
+        )?;
+        Ok(())
+    }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
         let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();
         top_none.sort_by_key(|x| -x.playcount);
@@ -259,6 +313,12 @@ impl std::fmt::Display for Album {
     }
 }
 
+impl Hash for Album {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.title.hash(state);
+        self.artist.hash(state);
+    }
+}
 pub fn parse_args(args: Vec<String>) -> Result<(u32, u32, String, bool), i32> {
     let (mut x, mut y, mut period, mut captions) = (5u32, 5u32, String::from("7day"), true);
     let mut args = args.into_iter();

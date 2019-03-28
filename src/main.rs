@@ -1,6 +1,6 @@
 use group_chart::*;
 use num_rational::Ratio;
-use std::collections::{BTreeSet, BinaryHeap};
+use std::collections::{BTreeSet, BinaryHeap, HashSet};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -75,14 +75,23 @@ fn main() {
     let mut top_albums = BTreeSet::new();
     let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
 
+    let database: HashSet<Album> = match Album::load_database() {
+        Err(x) => {
+            eprintln!("couldn't read database.txt file with error {}", x);
+            HashSet::with_capacity(0)
+        }
+        Ok(x) => x,
+    };
+
     let albums_no = albums.len();
+
     for (i, mut album) in albums.into_iter().enumerate() {
         eprintln!("{}/{}", i, albums_no);
         sleep(125);
 
         loop {
-            match album.more_info(&key) {
-                Ok(_) => break,
+            match album.more_info(&database, &key) {
+                Ok(x) => if !x { Album::add_to_database(&album); },
                 Err(x) => {
                     eprintln!("error {:?} while reading {}", x, album);
                     sleep(1000);
