@@ -5,12 +5,12 @@ use std::collections::{BTreeSet, BinaryHeap, HashSet};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     //overall | 7day | 1month | 3month | 6month | 12month
-    let (x_images, y_images, period, captions) = match parse_args(args){
-            Ok(x) => x,
-            Err(1) => panic!("-x, -y, -p have to be followed by a value"),
-            Err(2) => panic!("use positive integers as collage dimensions"),
-            Err(3) => panic!("available args: -x, -y, -p, -c"),
-            _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
+    let (x_images, y_images, period, captions) = match parse_args(args) {
+        Ok(x) => x,
+        Err(1) => panic!("-x, -y, -p have to be followed by a value"),
+        Err(2) => panic!("use positive integers as collage dimensions"),
+        Err(3) => panic!("available args: -x, -y, -p, -c"),
+        _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
     };
 
     let top_number = (x_images * y_images) as usize;
@@ -66,7 +66,7 @@ fn main() {
         Album::insert(&mut albums, user_albums, user);
 
         println!("{}/{}", progress + 1, no_users);
-        sleep(125); // don't overuse server
+        sleep(90); // don't overuse server
     }
 
     //descending sorted Vec
@@ -91,7 +91,17 @@ fn main() {
 
         loop {
             match album.more_info(&database, &key) {
-                Ok(x) => if !x { Album::add_to_database(&album); },
+                Ok(x) => {
+                    if !x {
+                        if let Err(e) = Album::add_to_database(&album) {
+                            eprintln!(
+                                "There was an error during appending new record to database: {}",
+                                e
+                            )
+                        }
+                    }
+                    break;
+                }
                 Err(x) => {
                     eprintln!("error {:?} while reading {}", x, album);
                     sleep(1000);
@@ -156,6 +166,9 @@ fn main() {
     let cover_urls = Album::get_images(&top);
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
-
+    let s = albums_to_html(&top);
+    if let Err(_) = save_index_html(&s) {
+        eprint!("{}", s);
+    }
     drawer::collage(cover_urls, top, x_images, y_images, captions);
 }
