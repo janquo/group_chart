@@ -353,9 +353,11 @@ pub struct Args {
     pub y: u32,
     pub period: String,
     pub captions: bool,
+    pub nick: Option<String>,
+    pub web: bool,
 }
 pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
-    let mut res = Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: true};
+    let mut res = Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: false, nick: None, web: false};
     let mut args = args.into_iter();
     args.next();
     while let Some(arg) = args.next() {
@@ -363,7 +365,9 @@ pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
             "-x" => res.x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
             "-y" => res.y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
             "-p" => res.period = args.next().ok_or(1)?,
-            "-c" => res.captions = false,
+            "-c" => res.captions = true,
+            "-w" => res.web = true,
+            "-s" => res.nick = Some(args.next().ok_or(1)?),
             _ => return Err(3),
         }
     }
@@ -373,10 +377,10 @@ pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
     Ok(res)
 }
 
-pub fn get_users() -> String {
+pub fn get_users() -> Vec<String> {
     let contents = fs::read_to_string("./data/users.txt")
         .expect("Something went wrong reading the users.txt file");
-    contents
+    contents.lines().map(String::from).collect()
 }
 
 pub fn get_key() -> String {

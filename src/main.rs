@@ -7,16 +7,22 @@ fn main() {
     //overall | 7day | 1month | 3month | 6month | 12month
     let args = match parse_args(args) {
         Ok(x) => x,
-        Err(1) => panic!("-x, -y, -p have to be followed by a value"),
+        Err(1) => panic!("-x, -y, -p, -s have to be followed by a value"),
         Err(2) => panic!("use positive integers as collage dimensions"),
-        Err(3) => panic!("available args: -x, -y, -p, -c"),
+        Err(3) => panic!("available args: -x, -y, -p, -c, -w, -s"),
         _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
     };
 
     let top_number = (args.x * args.y) as usize;
 
-    let users = get_users();
-    let users: Vec<&str> = users.lines().collect();
+    let users = |args : &Args| {
+        match &args.nick {
+            None => get_users(),
+            Some(nick) => vec![nick.clone()],
+        }
+    };
+
+    let users = users(&args);
 
     let key = get_key();
 
@@ -32,7 +38,7 @@ fn main() {
                 Err(x) => {
                     eprintln!(
                         "Couldn't aquire data for user {} because of {}\n trying again in a second...",
-                        user, if x.is_timeout() {String::from("timeout")} else {format!("{:?}", x)}
+                        user, x
                     );
                     sleep(1000);
                     continue;
@@ -103,7 +109,7 @@ fn main() {
                     break;
                 }
                 Err(x) => {
-                    eprintln!("error {:?} while reading {}", x, album);
+                    eprintln!("{} while reading {}", if x.is_timeout() {String::from("timeout")} else {format!("{:?}", x)}, album);
                     sleep(1000);
                 }
             }
@@ -166,9 +172,13 @@ fn main() {
     let cover_urls = Album::get_images(&top);
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
-    let s = albums_to_html(&top);
-    if let Err(_) = save_index_html(&s) {
-        eprint!("{}", s);
+
+    if args.web {
+        let s = albums_to_html(&top);
+        if let Err(_) = save_index_html(&s) {
+            eprint!("{}", s);
+        }
     }
+
     drawer::collage(cover_urls, top, args.x, args.y, args.captions);
 }
