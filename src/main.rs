@@ -31,8 +31,8 @@ fn main() {
             let user_data1 = match user_data1 {
                 Err(x) => {
                     eprintln!(
-                        "Couldn't aquire data for user {} with error {:?}\n trying again in a second...",
-                        user, x
+                        "Couldn't aquire data for user {} because of {}\n trying again in a second...",
+                        user, if x.is_timeout() {String::from("timeout")} else {format!("{:?}", x)}
                     );
                     sleep(1000);
                     continue;
