@@ -118,7 +118,7 @@ fn main() {
         let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
-        if top_albums.len() >= top_number && Ratio::new(album.playcount(), 2) < smallest {
+        if top_albums.len() >= top_number && Ratio::new(album.playcount(), 3) < smallest {
             break;
         }
 
