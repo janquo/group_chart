@@ -348,23 +348,29 @@ impl Hash for Album {
         self.artist.hash(state);
     }
 }
-pub fn parse_args(args: Vec<String>) -> Result<(u32, u32, String, bool), i32> {
-    let (mut x, mut y, mut period, mut captions) = (5u32, 5u32, String::from("7day"), true);
+pub struct Args {
+    pub x: u32,
+    pub y: u32,
+    pub period: String,
+    pub captions: bool,
+}
+pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
+    let mut res = Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: true};
     let mut args = args.into_iter();
     args.next();
     while let Some(arg) = args.next() {
         match arg.as_str() {
-            "-x" => x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-y" => y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-p" => period = args.next().ok_or(1)?,
-            "-c" => captions = false,
+            "-x" => res.x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
+            "-y" => res.y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
+            "-p" => res.period = args.next().ok_or(1)?,
+            "-c" => res.captions = false,
             _ => return Err(3),
         }
     }
-    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&period.as_str()) {
+    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&res.period.as_str()) {
         return Err(4);
     }
-    Ok((x, y, period, captions))
+    Ok(res)
 }
 
 pub fn get_users() -> String {

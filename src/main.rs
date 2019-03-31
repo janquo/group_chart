@@ -5,7 +5,7 @@ use std::collections::{BTreeSet, BinaryHeap, HashSet};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     //overall | 7day | 1month | 3month | 6month | 12month
-    let (x_images, y_images, period, captions) = match parse_args(args) {
+    let args = match parse_args(args) {
         Ok(x) => x,
         Err(1) => panic!("-x, -y, -p have to be followed by a value"),
         Err(2) => panic!("use positive integers as collage dimensions"),
@@ -13,7 +13,7 @@ fn main() {
         _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
     };
 
-    let top_number = (x_images * y_images) as usize;
+    let top_number = (args.x * args.y) as usize;
 
     let users = get_users();
     let users: Vec<&str> = users.lines().collect();
@@ -26,7 +26,7 @@ fn main() {
 
     for (progress, user) in users.iter().enumerate() {
         let user_data: serde_json::Value = loop {
-            let user_data1 = get_chart(user, &key, &period);
+            let user_data1 = get_chart(user, &key, &args.period);
 
             let user_data1 = match user_data1 {
                 Err(x) => {
@@ -170,5 +170,5 @@ fn main() {
     if let Err(_) = save_index_html(&s) {
         eprint!("{}", s);
     }
-    drawer::collage(cover_urls, top, x_images, y_images, captions);
+    drawer::collage(cover_urls, top, args.x, args.y, args.captions);
 }
