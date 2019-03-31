@@ -13,10 +13,11 @@ extern crate serde_json;
 use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
-use std::collections::{BTreeSet, BinaryHeap};
+use std::collections::{BTreeSet, BinaryHeap, HashSet};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::io::Write;
 
 pub mod drawer;
@@ -62,7 +63,11 @@ impl Album {
             no_contributors: 0,
         }
     }
-    pub fn more_info(&mut self, key: &str) -> Result<(), reqwest::Error> {
+    pub fn more_info(
+        &mut self,
+        database: &HashSet<Album>,
+        key: &str,
+    ) -> Result<bool, reqwest::Error> {
         /* let request_url = if self.mbid.is_none()
             || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
         {
@@ -72,30 +77,38 @@ impl Album {
             format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&mbid={}&format=json",
                                                     key, self.mbid.clone().unwrap())
         };*/
-        let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
-                          key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
+        if let Some(album) = database.get(&self) {
+            self.tracks = album.tracks;
+            self.image = album.image.clone();
 
-        let mut response = reqwest::get(&request_url)?;
+            self.compute_score();
 
-        let data = response.json();
-        let data: Value = match data {
-            Ok(x) => x,
-            _ => return Ok(()),
-        };
+            Ok(true)
+        } else {
+            let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
+                                      key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
 
-        self.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
-        if self.tracks == Some(0) {
-            self.tracks = None;
+            let mut response = reqwest::get(&request_url)?;
+
+            let data = response.json();
+            let data: Value = match data {
+                Ok(x) => x,
+                _ => return Ok(true), //not an ideal solution, but shouldn't happen
+            };
+
+            self.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
+            if self.tracks == Some(0) {
+                self.tracks = None;
+            }
+
+            self.image = match data["album"]["image"].as_array() {
+                None => None,
+                Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
+            };
+            self.compute_score();
+
+            Ok(false)
         }
-
-        self.image = match data["album"]["image"].as_array() {
-            None => None,
-            Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
-        };
-
-        self.compute_score();
-
-        Ok(())
     }
 
     fn compute_score(&mut self) {
@@ -108,8 +121,9 @@ impl Album {
     pub fn merge(&mut self, other: &Album) {
         self.no_contributors += 1;
         self.playcount += other.playcount;
-        if self.best_contributor.1 < other.best_contributor.1 {self.best_contributor
-             = other.best_contributor.clone();}
+        if self.best_contributor.1 < other.best_contributor.1 {
+            self.best_contributor = other.best_contributor.clone();
+        }
     }
 
     pub fn playcount(&self) -> i64 {
@@ -127,7 +141,10 @@ impl Album {
     }
 
     pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>, user: &str) {
-        for album in user_albums.iter().map(|x| Album::parse_album(x, String::from(user))) {
+        for album in user_albums
+            .iter()
+            .map(|x| Album::parse_album(x, String::from(user)))
+        {
             //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
             //insert returns false if same entry exists in a set
             if albums.contains(&album) {
@@ -159,7 +176,52 @@ impl Album {
     pub fn to_string_semic(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
     }
-
+    pub fn to_database_format(&self) -> String {
+        format!(
+            "{};{};{};{}\n",
+            self.artist,
+            self.title,
+            self.tracks.unwrap_or(0),
+            match &self.image {
+                Some(x) => &x[..],
+                None => "./data/blank.png",
+            }
+        )
+    }
+    pub fn to_html_card(&self) -> String {
+        format!(
+            r#"<div class="card mb-3">
+                <div class="row no-gutters">
+                <div class="col-md-4">
+                <img alt="alt" class="card-img" src="{}">
+                </div>
+                <div class="col-md-8">
+                <div class="card-body">
+                <h5 class="card-title">{} - {}</h5>
+                <p class="card-text">Scrobbles: {}</p>
+                <p class="card-text">Score: {:.2}</p>
+                <p class="card-text">Contributors number: {}</p>
+                <p class="card-text">Top: {} - {} scrobbles</p>
+                </div>
+                </div>
+                </div>
+                </div>"#,
+            match &self.image {
+                Some(x) => &x[..],
+                None => "./data/blank.png",
+            },
+            self.artist,
+            self.title,
+            self.playcount,
+            match &self.score {
+                Some(x) => (*x.numer() as f64) / (*x.denom() as f64),
+                None => 0.0,
+            },
+            self.no_contributors,
+            self.best_contributor.0,
+            self.best_contributor.1,
+        )
+    }
     pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
         let content = fs::read_to_string("manual_tracks.txt")?;
         for line in content.lines() {
@@ -189,6 +251,44 @@ impl Album {
         Ok(())
     }
 
+    pub fn load_database() -> Result<HashSet<Album>, Box<dyn Error>> {
+        let mut database: HashSet<Album> = HashSet::with_capacity(15000);
+
+        let content = fs::read_to_string("./data/database.txt")?;
+        for line in content.lines() {
+            let mut words = line.split(";");
+            let (artist, title, tracks, image) =
+                (words.next(), words.next(), words.next(), words.next());
+            if artist == None || title == None {
+                continue;
+            }
+            let album = Album {
+                title: String::from(title.unwrap()),
+                artist: String::from(artist.unwrap()),
+                playcount: 0,
+                tracks: tracks.unwrap().parse().ok(),
+                score: None,
+                image: image.map(String::from),
+                mbid: None,
+                best_contributor: (String::from(""), 0),
+                no_contributors: 0,
+            };
+            if !database.insert(album) {
+                eprintln!("record doubled in a database");
+            }
+        }
+        Ok(database)
+    }
+
+    pub fn add_to_database(album: &Album) -> std::io::Result<()> {
+        let mut file = std::fs::OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open("./data/database.txt")?;
+
+        file.write_all(album.to_database_format().as_bytes())?;
+        Ok(())
+    }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
         let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();
         top_none.sort_by_key(|x| -x.playcount);
@@ -204,8 +304,10 @@ impl Album {
         let mut cover_urls: Vec<String> = Vec::new();
         for album in albums.iter() {
             match &album.image {
-                Some(x) => cover_urls.push(download_image(&x).unwrap_or(String::from("blank.png"))),
-                _ => cover_urls.push(String::from("blank.png")),
+                Some(x) => {
+                    cover_urls.push(download_image(&x).unwrap_or(String::from("./data/blank.png")))
+                }
+                _ => cover_urls.push(String::from("./data/blank.png")),
             }
         }
         cover_urls
@@ -231,34 +333,21 @@ impl std::fmt::Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            r#"<div class="card mb-3">
-                <div class="row no-gutters">
-                <div class="col-md-4">
-                <img alt="alt" class="card-img" src="{}">
-                </div>
-                <div class="col-md-8">
-                <div class="card-body">
-                <h5 class="card-title">{} - {}</h5>
-                <p class="card-text">Scrobbles: {}</p>
-                <p class="card-text">Score: {:.2}</p>
-                <p class="card-text">Contributors number: {}</p>
-                <p class="card-text">Top: {} - {} scrobbles</p>
-                </div>
-                </div>
-                </div>
-                </div>"#,
-            match &self.image {Some(x) => &x[..], None => "blank.png",},
+            "{} - {}: {} ({})",
             self.artist,
             self.title,
-            self.playcount,
-            match &self.score {Some(x) => (*x.numer() as f64) / (*x.denom() as f64), None => 0.0,},
-            self.no_contributors,
-            self.best_contributor.0,
-            self.best_contributor.1,
+            self.score.unwrap_or(Ratio::new(0, 1)),
+            self.playcount
         )
     }
 }
 
+impl Hash for Album {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.title.hash(state);
+        self.artist.hash(state);
+    }
+}
 pub fn parse_args(args: Vec<String>) -> Result<(u32, u32, String, bool), i32> {
     let (mut x, mut y, mut period, mut captions) = (5u32, 5u32, String::from("7day"), true);
     let mut args = args.into_iter();
@@ -272,20 +361,21 @@ pub fn parse_args(args: Vec<String>) -> Result<(u32, u32, String, bool), i32> {
             _ => return Err(3),
         }
     }
-    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&period.as_str())
-        {return Err(4);}
+    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&period.as_str()) {
+        return Err(4);
+    }
     Ok((x, y, period, captions))
 }
 
 pub fn get_users() -> String {
-    let contents =
-        fs::read_to_string("users.txt").expect("Something went wrong reading the users.txt file");
+    let contents = fs::read_to_string("./data/users.txt")
+        .expect("Something went wrong reading the users.txt file");
     contents
 }
 
 pub fn get_key() -> String {
-    let contents =
-        fs::read_to_string("key.txt").expect("Something went wrong reading the key.txt file");
+    let contents = fs::read_to_string("./data/key.txt")
+        .expect("Something went wrong reading the key.txt file");
     contents
 }
 
@@ -323,6 +413,41 @@ pub fn top_scores_update(
         }
         None => true,
     }
+}
+pub fn albums_to_html(albums: &Vec<&Album>) -> String {
+    let mut doc = String::from(
+    r##"<!doctype html>
+    <html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <title>#tygodniowa</title>
+    </head>
+    <body>
+    <div class="card-columns">"##);
+    for album in albums {
+        doc.push_str(&album.to_html_card());
+    }
+    doc.push_str(r##"</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script crossorigin="anonymous" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script crossorigin="anonymous" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script crossorigin="anonymous" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    </body>
+    </html>"##);
+    doc
+}
+pub fn save_index_html(s: &String) -> std::io::Result<()> {
+    let mut file = File::create("./docs/index.html")?;
+    file.write_all(s.as_bytes())?;
+    Ok(())
 }
 pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
     let mut response = reqwest::get(target)?;
