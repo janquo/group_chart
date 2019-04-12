@@ -5,7 +5,8 @@ use std::collections::{BTreeSet, BinaryHeap, HashSet};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     //overall | 7day | 1month | 3month | 6month | 12month
-    let args = match parse_args(args) {
+    let config = load_config();
+    let args = match parse_args(args, config) {
         Ok(x) => x,
         Err(1) => panic!("-x, -y, -p, -s have to be followed by a value"),
         Err(2) => panic!("use positive integers as collage dimensions"),
@@ -17,14 +18,14 @@ fn main() {
 
     let users = |args : &Args| {
         match &args.nick {
-            None => get_users(),
+            None => get_users(&args.path_read),
             Some(nick) => vec![nick.clone()],
         }
     };
 
     let users = users(&args);
 
-    let key = get_key();
+    let key = get_key(&args.path_read);
 
     let mut albums: BTreeSet<Album> = BTreeSet::new();
 
@@ -81,7 +82,7 @@ fn main() {
     let mut top_albums = BTreeSet::new();
     let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
 
-    let database: HashSet<Album> = match Album::load_database() {
+    let database: HashSet<Album> = match Album::load_database(&args.path_write) {
         Err(x) => {
             eprintln!("couldn't read database.txt file with error {}", x);
             HashSet::with_capacity(0)
@@ -99,7 +100,7 @@ fn main() {
             match album.more_info(&database, &key) {
                 Ok(x) => {
                     if !x {
-                        if let Err(e) = Album::add_to_database(&album) {
+                        if let Err(e) = Album::add_to_database(&album, &args.path_write) {
                             eprintln!(
                                 "There was an error during appending new record to database: {}",
                                 e
@@ -169,16 +170,16 @@ fn main() {
         .take(top_number)
         .collect();
 
-    let cover_urls = Album::get_images(&top);
+    let cover_urls = Album::get_images(&top, &args.path_write);
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
     if args.web {
         let s = albums_to_html(&top);
-        if let Err(_) = save_index_html(&s) {
+        if let Err(_) = save_index_html(&s, &args.path_web) {
             eprint!("{}", s);
         }
     }
 
-    drawer::collage(cover_urls, top, args.x, args.y, args.captions);
+    drawer::collage(cover_urls, top, args.x, args.y, args.captions, &args.path_out);
 }

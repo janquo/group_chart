@@ -184,7 +184,7 @@ impl Album {
             self.tracks.unwrap_or(0),
             match &self.image {
                 Some(x) => &x[..],
-                None => "./data/blank.png",
+                None => "blank.png",
             }
         )
     }
@@ -208,7 +208,7 @@ impl Album {
                 </div>"#,
             match &self.image {
                 Some(x) => &x[..],
-                None => "./data/blank.png",
+                None => "blank.png",
             },
             self.artist,
             self.title,
@@ -251,10 +251,10 @@ impl Album {
         Ok(())
     }
 
-    pub fn load_database() -> Result<HashSet<Album>, Box<dyn Error>> {
+    pub fn load_database(path : &String) -> Result<HashSet<Album>, Box<dyn Error>> {
         let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
-        let content = fs::read_to_string("./data/database.txt")?;
+        let content = fs::read_to_string(format!("{}database.txt", path))?;
         for line in content.lines() {
             let mut words = line.split(";");
             let (artist, title, tracks, image) =
@@ -280,11 +280,11 @@ impl Album {
         Ok(database)
     }
 
-    pub fn add_to_database(album: &Album) -> std::io::Result<()> {
+    pub fn add_to_database(album: &Album, path : &String) -> std::io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
-            .open("./data/database.txt")?;
+            .open(format!("{}database.txt", path))?;
 
         file.write_all(album.to_database_format().as_bytes())?;
         Ok(())
@@ -300,14 +300,14 @@ impl Album {
         top_some
     }
 
-    pub fn get_images(albums: &Vec<&Album>) -> Vec<String> {
+    pub fn get_images(albums: &Vec<&Album>, path: &String) -> Vec<String> {
         let mut cover_urls: Vec<String> = Vec::new();
         for album in albums.iter() {
             match &album.image {
                 Some(x) => {
-                    cover_urls.push(download_image(&x).unwrap_or(String::from("./data/blank.png")))
+                    cover_urls.push(download_image(&x, path).unwrap_or(format!("{}blank.png", path)))
                 }
-                _ => cover_urls.push(String::from("./data/blank.png")),
+                _ => cover_urls.push(format!("{}blank.png", path)),
             }
         }
         cover_urls
@@ -355,9 +355,43 @@ pub struct Args {
     pub captions: bool,
     pub nick: Option<String>,
     pub web: bool,
+    pub path_write: String,
+    pub path_read: String,
+    pub path_out: String,
+    pub path_web: String,
 }
-pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
-    let mut res = Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: false, nick: None, web: false};
+impl Args {
+    fn new() -> Args {
+        Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: false, nick: None, web: false, path_read: String::from("./data/"), path_write: String::from("./data/"), path_out: String::from(""), path_web: String::from("./docs/")}
+    }
+}
+pub fn load_config() -> Args {
+    let mut args = Args::new();
+    let lines = fs::read_to_string("config.ini")
+        .expect("Something went wrong reading the config.ini file");
+    let lines = lines.lines();
+    for line in lines.into_iter() {
+        let mut words = line.split("=");
+        let key = words.next().unwrap();
+        let value = words.next().unwrap();
+        match key {
+            "x" => args.x = value.parse().unwrap(),
+            "y" => args.y = value.parse().unwrap(),
+            "period" => args.period = String::from(value),
+            "captions" => args.captions = value.parse().unwrap(),
+            "web" => args.web = value.parse().unwrap(),
+            "user" => args.nick = if value == "" {None} else {Some(String::from(value))},
+            "read_path" => args.path_read = String::from(value),
+            "write_path" => args.path_write  = String::from(value),
+            "out_path" => args.path_out = String::from(value),
+            "web_path" => args.path_web = String::from(value),
+            _ => panic!("check your config file"),
+        }
+    }
+    args
+}
+
+pub fn parse_args(args: Vec<String>, mut res: Args) -> Result<Args, i32> {
     let mut args = args.into_iter();
     args.next();
     while let Some(arg) = args.next() {
@@ -377,15 +411,15 @@ pub fn parse_args(args: Vec<String>) -> Result<Args, i32> {
     Ok(res)
 }
 
-pub fn get_users() -> Vec<String> {
-    let contents = fs::read_to_string("./data/users.txt")
+pub fn get_users(path: &String) -> Vec<String> {
+    let contents = fs::read_to_string(format!("{}users.txt", path))
         .expect("Something went wrong reading the users.txt file");
     contents.lines().map(String::from).collect()
 }
 
-pub fn get_key() -> String {
-    let contents = fs::read_to_string("./data/key.txt")
-        .expect("Something went wrong reading the key.txt file");
+pub fn get_key(path: &String) -> String {
+    let contents = fs::read_to_string(format!("{}key.txt", path))
+        .expect(&format!("Something went wrong reading {}key.txt", path));
     contents
 }
 
@@ -454,12 +488,12 @@ pub fn albums_to_html(albums: &Vec<&Album>) -> String {
     </html>"##);
     doc
 }
-pub fn save_index_html(s: &String) -> std::io::Result<()> {
-    let mut file = File::create("./docs/index.html")?;
+pub fn save_index_html(s: &String, path: &String) -> std::io::Result<()> {
+    let mut file = File::create(format!("{}index.html", path))?;
     file.write_all(s.as_bytes())?;
     Ok(())
 }
-pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
+pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Error> {
     let mut response = reqwest::get(target)?;
     let mut result;
 
@@ -470,7 +504,7 @@ pub fn download_image(target: &str) -> Result<String, reqwest::Error> {
             .and_then(|segments| segments.last())
             .and_then(|name| if name.is_empty() { None } else { Some(name) })
             .unwrap_or("tmp.bin");
-        let fname = format!("./images/{}", fname);
+        let fname = format!("{}images/{}", path, fname);
         let fname = fname.as_str();
         result = String::from(fname);
         File::create(fname).unwrap()

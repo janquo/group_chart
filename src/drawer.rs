@@ -4,6 +4,7 @@ pub fn collage(
     x: u32,
     y: u32,
     captions: bool,
+    path: &String,
 ) {
     use image::GenericImage;
 
@@ -17,7 +18,7 @@ pub fn collage(
         }
         img.copy_from(&img2, 300 * (i % x), 300 * (i / x));
     }
-    img.save("test.png").unwrap();
+    img.save(format!("{}test.png", path)).unwrap();
 }
 
 fn draw_description(
