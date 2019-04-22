@@ -14,10 +14,10 @@ use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
-use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
+use std::io;
 use std::io::Write;
 
 pub mod drawer;
@@ -222,7 +222,7 @@ impl Album {
             self.best_contributor.1,
         )
     }
-    pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
+    pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> io::Result<()> {
         let content = fs::read_to_string("manual_tracks.txt")?;
         for line in content.lines() {
             let mut words = line.split(";");
@@ -251,7 +251,7 @@ impl Album {
         Ok(())
     }
 
-    pub fn load_database(path : &String) -> Result<HashSet<Album>, Box<dyn Error>> {
+    pub fn load_database(path : &String) -> io::Result<HashSet<Album>> {
         let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
         let content = fs::read_to_string(format!("{}database.txt", path))?;
@@ -280,7 +280,7 @@ impl Album {
         Ok(database)
     }
 
-    pub fn add_to_database(album: &Album, path : &String) -> std::io::Result<()> {
+    pub fn add_to_database(album: &Album, path : &String) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
@@ -488,7 +488,7 @@ pub fn albums_to_html(albums: &Vec<&Album>) -> String {
     </html>"##);
     doc
 }
-pub fn save_index_html(s: &String, path: &String) -> std::io::Result<()> {
+pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
     let mut file = File::create(format!("{}index.html", path))?;
     file.write_all(s.as_bytes())?;
     Ok(())
@@ -513,7 +513,7 @@ pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Er
     Ok(result)
 }
 
-pub fn nones_to_file(nones: &Vec<&Album>) -> Result<(), std::io::Error> {
+pub fn nones_to_file(nones: &Vec<&Album>) -> io::Result<()> {
     let mut file = File::create("nones.txt")?;
     file.write_all(
         nones
@@ -530,7 +530,7 @@ pub fn sleep(x: u64) {
     std::thread::sleep(std::time::Duration::from_millis(x));
 }
 
-pub fn wants_again() -> Result<bool, std::io::Error> {
+pub fn wants_again() -> io::Result<bool> {
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;
     if answer.chars().next().unwrap_or('Y') == 'N' {
