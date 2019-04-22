@@ -30,7 +30,7 @@ pub struct Album {
     tracks: Option<usize>,
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
-    mbid: Option<String>,
+    //mbid: Option<String>,
     best_contributor: (String, i64),
     no_contributors: i64,
 }
@@ -44,7 +44,7 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            mbid: data["mbid"].as_str().map(|s| String::from(s)),
+            //mbid: data["mbid"].as_str().map(|s| String::from(s)),
             best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
             no_contributors: 1,
         }
@@ -58,7 +58,7 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            mbid: None,
+            //mbid: None,
             best_contributor: (String::from("NaN"), 0),
             no_contributors: 0,
         }
@@ -269,7 +269,7 @@ impl Album {
                 tracks: tracks.unwrap().parse().ok(),
                 score: None,
                 image: image.map(String::from),
-                mbid: None,
+                //mbid: None,
                 best_contributor: (String::from(""), 0),
                 no_contributors: 0,
             };
