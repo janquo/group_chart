@@ -413,7 +413,7 @@ pub fn parse_args(args: Vec<String>, mut res: Args) -> Result<Args, i32> {
 
 pub fn get_users(path: &String) -> Vec<String> {
     let contents = fs::read_to_string(format!("{}users.txt", path))
-        .expect("Something went wrong reading the users.txt file");
+        .expect(&format!("Something went wrong reading {}users.txt", path));
     contents.lines().map(String::from).collect()
 }
 
