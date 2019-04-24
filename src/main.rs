@@ -82,7 +82,7 @@ fn main() {
     let mut top_albums = BTreeSet::new();
     let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
 
-    let database: HashSet<Album> = match Album::load_database(&args.path_write) {
+    let database: HashSet<Album> = match reader::load_database(&args.path_write) {
         Err(x) => {
             eprintln!("couldn't read database.txt file with error {}", x);
             HashSet::with_capacity(0)
