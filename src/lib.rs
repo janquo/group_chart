@@ -222,8 +222,8 @@ impl Album {
             self.best_contributor.1,
         )
     }
-    pub fn tracks_from_file(albums: &mut BTreeSet<Album>) -> Result<(), Box<dyn Error>> {
-        let content = fs::read_to_string("manual_tracks.txt")?;
+    pub fn tracks_from_file(albums: &mut BTreeSet<Album>, path_out: &String, path_write: &String) -> Result<(), Box<dyn Error>> {
+        let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
         for line in content.lines() {
             let mut words = line.split(";");
             let (artist, title, tracks) = (words.next(), words.next(), words.next());
@@ -246,6 +246,7 @@ impl Album {
             let mut updated = (*(current.as_ref().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
             updated.compute_score();
+            Album::add_to_database(&updated, path_write)?;
             albums.replace(updated);
         }
         Ok(())
@@ -513,8 +514,8 @@ pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Er
     Ok(result)
 }
 
-pub fn nones_to_file(nones: &Vec<&Album>) -> Result<(), std::io::Error> {
-    let mut file = File::create("nones.txt")?;
+pub fn nones_to_file(nones: &Vec<&Album>, path: &String) -> Result<(), std::io::Error> {
+    let mut file = File::create(format!("{}nones.txt", path))?;
     file.write_all(
         nones
             .iter()
