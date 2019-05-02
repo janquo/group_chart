@@ -128,17 +128,10 @@ fn main() {
             top_albums.insert(album);
         }
     }
-    match Album::tracks_from_file(&mut top_albums) {
-        Err(x) => eprintln!(
-            "{:?}\nerror ocurred during reading manual_tracks.txt, proceeding...",
-            x
-        ),
-        _ => (),
-    }
 
     let top_none = Album::with_no_score(&top_albums);
 
-    while nones_to_file(&top_none).is_err() {
+    while nones_to_file(&top_none, &args.path_out).is_err() {
         eprintln!("error ocurred durring attempt to write albums without score to a file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
@@ -150,10 +143,10 @@ fn main() {
         }
     }
 
-    println!("update manual tracks file and enter anything to proceed");
+    println!("update nones file and enter anything to proceed");
     std::io::stdin().read_line(&mut String::new()).unwrap_or(0);
 
-    while Album::tracks_from_file(&mut top_albums).is_err() {
+    while Album::tracks_from_file(&mut top_albums, &args.path_out, &args.path_write).is_err() {
         eprintln!("error ocurred durring attempt to read scores from file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
