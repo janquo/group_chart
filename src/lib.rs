@@ -275,19 +275,21 @@ impl Album {
                 no_contributors: 0,
             };
             if !database.insert(album) {
-                eprintln!("record doubled in a database");
+                eprintln!("record doubled in a database {} - {}", artist.unwrap(), title.unwrap());
             }
         }
         Ok(database)
     }
 
     pub fn add_to_database(album: &Album, path : &String) -> std::io::Result<()> {
-        let mut file = std::fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(format!("{}database.txt", path))?;
+        if album.tracks != None && album.tracks != Some(0) {
+            let mut file = std::fs::OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(format!("{}database.txt", path))?;
 
-        file.write_all(album.to_database_format().as_bytes())?;
+            file.write_all(album.to_database_format().as_bytes())?;
+        }
         Ok(())
     }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
