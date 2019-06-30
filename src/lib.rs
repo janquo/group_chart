@@ -114,10 +114,13 @@ impl Album {
     }
 
     fn compute_score(&mut self) {
-        if self.tracks.is_none() || self.tracks == Some(1) || self.tracks == Some(0) {
+        if self.tracks.is_none() || self.tracks == Some(0) {
             return;
         }
-        self.score = Some(Ratio::new(self.playcount, self.tracks.unwrap() as i64));
+        self.score = Some(Ratio::new(
+            if self.tracks == Some(1) {0} else {self.playcount},
+             self.tracks.unwrap() as i64)
+         );
     }
 
     pub fn merge(&mut self, other: &Album) {
