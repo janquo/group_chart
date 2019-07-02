@@ -24,6 +24,20 @@ pub mod drawer;
 pub mod reader;
 pub mod config;
 
+
+pub struct Args {
+    pub x: u32,
+    pub y: u32,
+    pub period: String,
+    pub captions: bool,
+    pub nick: Option<String>,
+    pub web: bool,
+    pub path_write: String,
+    pub path_read: String,
+    pub path_out: String,
+    pub path_web: String,
+}
+
 #[derive(Clone)]
 pub struct Album {
     title: String,
@@ -150,7 +164,6 @@ impl Album {
             .iter()
             .map(|x| Album::parse_album(x, String::from(user)))
         {
-            //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
             //insert returns false if same entry exists in a set
             if albums.contains(&album) {
                 let mut old = albums.take(&album).unwrap();
@@ -162,7 +175,7 @@ impl Album {
         }
     }
 
-    pub fn sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
+    pub fn rev_sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
         let mut res: Vec<Album> = albums.into_iter().collect();
         res.sort_by_key(|album| -album.playcount());
         res
@@ -348,7 +361,7 @@ pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::
 }
 
 ///returns false if album shouldn't be considered
-pub fn top_scores_update(
+pub fn is_top_and_update_top(
     album: &Album,
     top_number: usize,
     scores: &mut BinaryHeap<Ratio<i64>>,

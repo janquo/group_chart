@@ -1,18 +1,19 @@
+use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
-use config::ConfigErr;
-
 
 fn main() {
     let args = config::load_args();
     let config = config::load();
-    let args = match config::parse_args(args, config) {
+    let args = match config.parse(args) {
         Ok(x) => x,
         Err(ConfigErr::NoArgument) => panic!("-x, -y, -p, -s have to be followed by a value"),
         Err(ConfigErr::U32ParseError) => panic!("use positive integers as collage dimensions"),
         Err(ConfigErr::WrongOption) => panic!("available args: -x, -y, -p, -c, -w, -s"),
-        Err(ConfigErr::WrongPeriod) => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
+        Err(ConfigErr::WrongPeriod) => {
+            panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month")
+        }
     };
 
     let collage_size = args.size();
@@ -27,9 +28,7 @@ fn main() {
 
     for (progress, user) in users.iter().enumerate() {
         let user_data: serde_json::Value = loop {
-            let user_data1 = get_chart(user, &key, &args.period);
-
-            let user_data1 = match user_data1 {
+            let user_data = match get_chart(user, &key, &args.period) {
                 Err(x) => {
                     eprintln!(
                         "Couldn't aquire data for user {} because of {}\n trying again in a second...",
@@ -41,10 +40,10 @@ fn main() {
                 Ok(x) => x,
             };
 
-            if user_data1["error"] == serde_json::Value::Null {
-                break user_data1;
+            if user_data["error"] == serde_json::Value::Null {
+                break user_data;
             } else {
-                let error_code = user_data1["error"].as_i64().unwrap();
+                let error_code = user_data["error"].as_i64().unwrap();
                 eprintln!("Error code {} while reading user {}", error_code, user);
                 if error_code == 29 {
                     eprintln!("waiting...");
@@ -70,11 +69,10 @@ fn main() {
         sleep(90); // don't overuse server
     }
 
-    //descending sorted Vec
-    let albums = Album::sorted_vec(albums);
+    let albums = Album::rev_sorted_vec(albums);
 
     let mut top_albums = BTreeSet::new();
-    let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
+    let mut negative_scores_max_heap: BinaryHeap<Ratio<i64>> = BinaryHeap::new();
 
     let database: HashSet<Album> = match reader::load_database(&args.path_write) {
         Err(x) => {
@@ -104,13 +102,21 @@ fn main() {
                     break;
                 }
                 Err(x) => {
-                    eprintln!("{} while reading {}", if x.is_timeout() {String::from("timeout")} else {format!("{:?}", x)}, album);
+                    eprintln!(
+                        "{} while reading {}",
+                        if x.is_timeout() {
+                            String::from("timeout")
+                        } else {
+                            format!("{:?}", x)
+                        },
+                        album
+                    );
                     sleep(1000);
                 }
             }
         }
 
-        let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
+        let smallest = -negative_scores_max_heap.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
         if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
@@ -118,7 +124,7 @@ fn main() {
         }
 
         //if a score belongs to top or there is no score then insert
-        if top_scores_update(&album, collage_size, &mut scores) {
+        if is_top_and_update_top(&album, collage_size, &mut negative_scores_max_heap) {
             top_albums.insert(album);
         }
     }
@@ -168,5 +174,12 @@ fn main() {
         }
     }
 
-    drawer::collage(cover_urls, top, args.x, args.y, args.captions, &args.path_out);
+    drawer::collage(
+        cover_urls,
+        top,
+        args.x,
+        args.y,
+        args.captions,
+        &args.path_out,
+    );
 }
