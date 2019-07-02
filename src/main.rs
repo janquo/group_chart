@@ -1,31 +1,25 @@
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
+use config::ConfigErr;
+
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    //overall | 7day | 1month | 3month | 6month | 12month
-    let config = load_config();
-    let args = match parse_args(args, config) {
+    let args = config::load_args();
+    let config = config::load();
+    let args = match config::parse_args(args, config) {
         Ok(x) => x,
-        Err(1) => panic!("-x, -y, -p, -s have to be followed by a value"),
-        Err(2) => panic!("use positive integers as collage dimensions"),
-        Err(3) => panic!("available args: -x, -y, -p, -c, -w, -s"),
-        _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
+        Err(ConfigErr::NoArgument) => panic!("-x, -y, -p, -s have to be followed by a value"),
+        Err(ConfigErr::U32ParseError) => panic!("use positive integers as collage dimensions"),
+        Err(ConfigErr::WrongOption) => panic!("available args: -x, -y, -p, -c, -w, -s"),
+        Err(ConfigErr::WrongPeriod) => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
     };
 
-    let top_number = (args.x * args.y) as usize;
+    let collage_size = args.size();
 
-    let users = |args : &Args| {
-        match &args.nick {
-            None => get_users(&args.path_read),
-            Some(nick) => vec![nick.clone()],
-        }
-    };
+    let users = args.load_users();
 
-    let users = users(&args);
-
-    let key = get_key(&args.path_read);
+    let key = args.get_key();
 
     let mut albums: BTreeSet<Album> = BTreeSet::new();
 
@@ -119,12 +113,12 @@ fn main() {
         let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
-        if top_albums.len() >= top_number && Ratio::new(album.playcount(), 3) < smallest {
+        if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
             break;
         }
 
         //if a score belongs to top or there is no score then insert
-        if top_scores_update(&album, top_number, &mut scores) {
+        if top_scores_update(&album, collage_size, &mut scores) {
             top_albums.insert(album);
         }
     }
@@ -160,7 +154,7 @@ fn main() {
 
     let mut top: Vec<&Album> = Album::with_score(&top_albums)
         .into_iter()
-        .take(top_number)
+        .take(collage_size)
         .collect();
 
     let cover_urls = Album::get_images(&top, &args.path_write);

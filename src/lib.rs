@@ -22,7 +22,7 @@ use std::io::Write;
 
 pub mod drawer;
 pub mod reader;
-use reader::*;
+pub mod config;
 
 #[derive(Clone)]
 pub struct Album {
@@ -325,68 +325,6 @@ impl Hash for Album {
         self.artist.hash(state);
     }
 }
-pub struct Args {
-    pub x: u32,
-    pub y: u32,
-    pub period: String,
-    pub captions: bool,
-    pub nick: Option<String>,
-    pub web: bool,
-    pub path_write: String,
-    pub path_read: String,
-    pub path_out: String,
-    pub path_web: String,
-}
-impl Args {
-    fn new() -> Args {
-        Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: false, nick: None, web: false, path_read: String::from("./data/"), path_write: String::from("./data/"), path_out: String::from(""), path_web: String::from("./docs/")}
-    }
-}
-pub fn load_config() -> Args {
-    let mut args = Args::new();
-    let lines = fs::read_to_string("config.ini")
-        .expect("Something went wrong reading the config.ini file");
-    let lines = lines.lines();
-    for line in lines.into_iter() {
-        let mut words = line.split("=");
-        let key = words.next().unwrap();
-        let value = words.next().unwrap();
-        match key {
-            "x" => args.x = value.parse().unwrap(),
-            "y" => args.y = value.parse().unwrap(),
-            "period" => args.period = String::from(value),
-            "captions" => args.captions = value.parse().unwrap(),
-            "web" => args.web = value.parse().unwrap(),
-            "user" => args.nick = if value == "" {None} else {Some(String::from(value))},
-            "read_path" => args.path_read = String::from(value),
-            "write_path" => args.path_write  = String::from(value),
-            "out_path" => args.path_out = String::from(value),
-            "web_path" => args.path_web = String::from(value),
-            _ => panic!("check your config file"),
-        }
-    }
-    args
-}
-
-pub fn parse_args(args: Vec<String>, mut res: Args) -> Result<Args, i32> {
-    let mut args = args.into_iter();
-    args.next();
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "-x" => res.x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-y" => res.y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-p" => res.period = args.next().ok_or(1)?,
-            "-c" => res.captions = true,
-            "-w" => res.web = true,
-            "-s" => res.nick = Some(args.next().ok_or(1)?),
-            _ => return Err(3),
-        }
-    }
-    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&res.period.as_str()) {
-        return Err(4);
-    }
-    Ok(res)
-}
 
 pub fn get_users(path: &String) -> Vec<String> {
     let contents = fs::read_to_string(format!("{}users.txt", path))
@@ -472,7 +410,7 @@ pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
 }
 pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Error> {
     let mut response = reqwest::get(target)?;
-    let mut result;
+    let result;
 
     let mut dest = {
         let fname = response
