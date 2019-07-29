@@ -14,13 +14,29 @@ use num_rational::Ratio;
 use serde_json::Value;
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
-use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
+use std::io;
 use std::io::Write;
 
 pub mod drawer;
+pub mod reader;
+pub mod config;
+
+
+pub struct Args {
+    pub x: u32,
+    pub y: u32,
+    pub period: String,
+    pub captions: bool,
+    pub nick: Option<String>,
+    pub web: bool,
+    pub path_write: String,
+    pub path_read: String,
+    pub path_out: String,
+    pub path_web: String,
+}
 
 #[derive(Clone)]
 pub struct Album {
@@ -30,7 +46,7 @@ pub struct Album {
     tracks: Option<usize>,
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
-    mbid: Option<String>,
+    //mbid: Option<String>,
     best_contributor: (String, i64),
     no_contributors: i64,
 }
@@ -44,7 +60,7 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            mbid: data["mbid"].as_str().map(|s| String::from(s)),
+            //mbid: data["mbid"].as_str().map(|s| String::from(s)),
             best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
             no_contributors: 1,
         }
@@ -58,7 +74,7 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            mbid: None,
+            //mbid: None,
             best_contributor: (String::from("NaN"), 0),
             no_contributors: 0,
         }
@@ -148,7 +164,6 @@ impl Album {
             .iter()
             .map(|x| Album::parse_album(x, String::from(user)))
         {
-            //eprintln!("adding {} to counter of album {} by user {}", count, name, user);
             //insert returns false if same entry exists in a set
             if albums.contains(&album) {
                 let mut old = albums.take(&album).unwrap();
@@ -160,7 +175,7 @@ impl Album {
         }
     }
 
-    pub fn sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
+    pub fn rev_sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
         let mut res: Vec<Album> = albums.into_iter().collect();
         res.sort_by_key(|album| -album.playcount());
         res
@@ -225,7 +240,8 @@ impl Album {
             self.best_contributor.1,
         )
     }
-    pub fn tracks_from_file(albums: &mut BTreeSet<Album>, path_out: &String, path_write: &String) -> Result<(), Box<dyn Error>> {
+
+    pub fn tracks_from_file(albums: &mut BTreeSet<Album>, path_out: &String, path_write: &String) -> io::Result<()> {
         let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
         for line in content.lines() {
             let mut words = line.split(";");
@@ -255,41 +271,11 @@ impl Album {
         Ok(())
     }
 
-    pub fn load_database(path : &String) -> Result<HashSet<Album>, Box<dyn Error>> {
-        let mut database: HashSet<Album> = HashSet::with_capacity(15000);
-
-        let content = fs::read_to_string(format!("{}database.txt", path))?;
-        for line in content.lines() {
-            let mut words = line.split(";");
-            let (artist, title, tracks, image) =
-                (words.next(), words.next(), words.next(), words.next());
-            if artist == None || title == None {
-                continue;
-            }
-            let album = Album {
-                title: String::from(title.unwrap()),
-                artist: String::from(artist.unwrap()),
-                playcount: 0,
-                tracks: tracks.unwrap().parse().ok(),
-                score: None,
-                image: image.map(String::from),
-                mbid: None,
-                best_contributor: (String::from(""), 0),
-                no_contributors: 0,
-            };
-            if !database.insert(album) {
-                eprintln!("record doubled in a database {} - {}", artist.unwrap(), title.unwrap());
-            }
-        }
-        Ok(database)
-    }
-
-    pub fn add_to_database(album: &Album, path : &String) -> std::io::Result<()> {
-        if album.tracks != None && album.tracks != Some(0) {
-            let mut file = std::fs::OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(format!("{}database.txt", path))?;
+    pub fn add_to_database(album: &Album, path : &String) -> io::Result<()> {
+        let mut file = std::fs::OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(format!("{}database.txt", path))?;
 
             file.write_all(album.to_database_format().as_bytes())?;
         }
@@ -354,68 +340,6 @@ impl Hash for Album {
         self.artist.hash(state);
     }
 }
-pub struct Args {
-    pub x: u32,
-    pub y: u32,
-    pub period: String,
-    pub captions: bool,
-    pub nick: Option<String>,
-    pub web: bool,
-    pub path_write: String,
-    pub path_read: String,
-    pub path_out: String,
-    pub path_web: String,
-}
-impl Args {
-    fn new() -> Args {
-        Args{ x: 5u32, y: 5u32, period: String::from("7day"), captions: false, nick: None, web: false, path_read: String::from("./data/"), path_write: String::from("./data/"), path_out: String::from(""), path_web: String::from("./docs/")}
-    }
-}
-pub fn load_config() -> Args {
-    let mut args = Args::new();
-    let lines = fs::read_to_string("config.ini")
-        .expect("Something went wrong reading the config.ini file");
-    let lines = lines.lines();
-    for line in lines.into_iter() {
-        let mut words = line.split("=");
-        let key = words.next().unwrap();
-        let value = words.next().unwrap();
-        match key {
-            "x" => args.x = value.parse().unwrap(),
-            "y" => args.y = value.parse().unwrap(),
-            "period" => args.period = String::from(value),
-            "captions" => args.captions = value.parse().unwrap(),
-            "web" => args.web = value.parse().unwrap(),
-            "user" => args.nick = if value == "" {None} else {Some(String::from(value))},
-            "read_path" => args.path_read = String::from(value),
-            "write_path" => args.path_write  = String::from(value),
-            "out_path" => args.path_out = String::from(value),
-            "web_path" => args.path_web = String::from(value),
-            _ => panic!("check your config file"),
-        }
-    }
-    args
-}
-
-pub fn parse_args(args: Vec<String>, mut res: Args) -> Result<Args, i32> {
-    let mut args = args.into_iter();
-    args.next();
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "-x" => res.x = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-y" => res.y = args.next().ok_or(1)?.parse().ok().ok_or(2)?,
-            "-p" => res.period = args.next().ok_or(1)?,
-            "-c" => res.captions = true,
-            "-w" => res.web = true,
-            "-s" => res.nick = Some(args.next().ok_or(1)?),
-            _ => return Err(3),
-        }
-    }
-    if !vec!["7day", "1month", "3month", "6month", "1year", "overall"].contains(&res.period.as_str()) {
-        return Err(4);
-    }
-    Ok(res)
-}
 
 pub fn get_users(path: &String) -> Vec<String> {
     let contents = fs::read_to_string(format!("{}users.txt", path))
@@ -439,7 +363,7 @@ pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::
 }
 
 ///returns false if album shouldn't be considered
-pub fn top_scores_update(
+pub fn is_top_and_update_top(
     album: &Album,
     top_number: usize,
     scores: &mut BinaryHeap<Ratio<i64>>,
@@ -494,14 +418,14 @@ pub fn albums_to_html(albums: &Vec<&Album>) -> String {
     </html>"##);
     doc
 }
-pub fn save_index_html(s: &String, path: &String) -> std::io::Result<()> {
+pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
     let mut file = File::create(format!("{}index.html", path))?;
     file.write_all(s.as_bytes())?;
     Ok(())
 }
 pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Error> {
     let mut response = reqwest::get(target)?;
-    let mut result;
+    let result;
 
     let mut dest = {
         let fname = response
@@ -519,7 +443,7 @@ pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Er
     Ok(result)
 }
 
-pub fn nones_to_file(nones: &Vec<&Album>, path: &String) -> Result<(), std::io::Error> {
+pub fn nones_to_file(nones: &Vec<&Album>, path: &String) -> io::Result<()> {
     let mut file = File::create(format!("{}nones.txt", path))?;
     file.write_all(
         nones
@@ -536,7 +460,7 @@ pub fn sleep(x: u64) {
     std::thread::sleep(std::time::Duration::from_millis(x));
 }
 
-pub fn wants_again() -> Result<bool, std::io::Error> {
+pub fn wants_again() -> io::Result<bool> {
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;
     if answer.chars().next().unwrap_or('Y') == 'N' {

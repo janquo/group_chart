@@ -1,31 +1,26 @@
+use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    //overall | 7day | 1month | 3month | 6month | 12month
-    let config = load_config();
-    let args = match parse_args(args, config) {
+    let args = config::load_args();
+    let config = config::load();
+    let args = match config.parse(args) {
         Ok(x) => x,
-        Err(1) => panic!("-x, -y, -p, -s have to be followed by a value"),
-        Err(2) => panic!("use positive integers as collage dimensions"),
-        Err(3) => panic!("available args: -x, -y, -p, -c, -w, -s"),
-        _ => panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month"),
-    };
-
-    let top_number = (args.x * args.y) as usize;
-
-    let users = |args : &Args| {
-        match &args.nick {
-            None => get_users(&args.path_read),
-            Some(nick) => vec![nick.clone()],
+        Err(ConfigErr::NoArgument) => panic!("-x, -y, -p, -s have to be followed by a value"),
+        Err(ConfigErr::U32ParseError) => panic!("use positive integers as collage dimensions"),
+        Err(ConfigErr::WrongOption) => panic!("available args: -x, -y, -p, -c, -w, -s"),
+        Err(ConfigErr::WrongPeriod) => {
+            panic!("available periods: overall | 7day | 1month | 3month | 6month | 12month")
         }
     };
 
-    let users = users(&args);
+    let collage_size = args.size();
 
-    let key = get_key(&args.path_read);
+    let users = args.load_users();
+
+    let key = args.get_key();
 
     let mut albums: BTreeSet<Album> = BTreeSet::new();
 
@@ -33,9 +28,7 @@ fn main() {
 
     for (progress, user) in users.iter().enumerate() {
         let user_data: serde_json::Value = loop {
-            let user_data1 = get_chart(user, &key, &args.period);
-
-            let user_data1 = match user_data1 {
+            let user_data = match get_chart(user, &key, &args.period) {
                 Err(x) => {
                     eprintln!(
                         "Couldn't aquire data for user {} because of {}\n trying again in a second...",
@@ -47,10 +40,10 @@ fn main() {
                 Ok(x) => x,
             };
 
-            if user_data1["error"] == serde_json::Value::Null {
-                break user_data1;
+            if user_data["error"] == serde_json::Value::Null {
+                break user_data;
             } else {
-                let error_code = user_data1["error"].as_i64().unwrap();
+                let error_code = user_data["error"].as_i64().unwrap();
                 eprintln!("Error code {} while reading user {}", error_code, user);
                 if error_code == 29 {
                     eprintln!("waiting...");
@@ -76,13 +69,12 @@ fn main() {
         sleep(90); // don't overuse server
     }
 
-    //descending sorted Vec
-    let albums = Album::sorted_vec(albums);
+    let albums = Album::rev_sorted_vec(albums);
 
     let mut top_albums = BTreeSet::new();
-    let mut scores: BinaryHeap<Ratio<i64>> = BinaryHeap::new(); // max_heap of negative scores
+    let mut negative_scores_max_heap: BinaryHeap<Ratio<i64>> = BinaryHeap::new();
 
-    let database: HashSet<Album> = match Album::load_database(&args.path_write) {
+    let database: HashSet<Album> = match reader::load_database(&args.path_write) {
         Err(x) => {
             eprintln!("couldn't read database.txt file with error {}", x);
             HashSet::with_capacity(0)
@@ -110,21 +102,29 @@ fn main() {
                     break;
                 }
                 Err(x) => {
-                    eprintln!("{} while reading {}", if x.is_timeout() {String::from("timeout")} else {format!("{:?}", x)}, album);
+                    eprintln!(
+                        "{} while reading {}",
+                        if x.is_timeout() {
+                            String::from("timeout")
+                        } else {
+                            format!("{:?}", x)
+                        },
+                        album
+                    );
                     sleep(1000);
                 }
             }
         }
 
-        let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
+        let smallest = -negative_scores_max_heap.peek().unwrap_or(&Ratio::new(-100000, 1));
 
         //some prunning
-        if top_albums.len() >= top_number && Ratio::new(album.playcount(), 3) < smallest {
+        if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
             break;
         }
 
         //if a score belongs to top or there is no score then insert
-        if top_scores_update(&album, top_number, &mut scores) {
+        if is_top_and_update_top(&album, collage_size, &mut negative_scores_max_heap) {
             top_albums.insert(album);
         }
     }
@@ -160,7 +160,7 @@ fn main() {
 
     let mut top: Vec<&Album> = Album::with_score(&top_albums)
         .into_iter()
-        .take(top_number)
+        .take(collage_size)
         .collect();
 
     let cover_urls = Album::get_images(&top, &args.path_write);
@@ -174,5 +174,12 @@ fn main() {
         }
     }
 
-    drawer::collage(cover_urls, top, args.x, args.y, args.captions, &args.path_out);
+    drawer::collage(
+        cover_urls,
+        top,
+        args.x,
+        args.y,
+        args.captions,
+        &args.path_out,
+    );
 }
