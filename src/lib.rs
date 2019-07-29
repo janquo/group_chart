@@ -240,6 +240,7 @@ impl Album {
             self.best_contributor.1,
         )
     }
+
     pub fn tracks_from_file(albums: &mut BTreeSet<Album>, path_out: &String, path_write: &String) -> io::Result<()> {
         let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
         for line in content.lines() {
@@ -276,7 +277,8 @@ impl Album {
             .create(true)
             .open(format!("{}database.txt", path))?;
 
-        file.write_all(album.to_database_format().as_bytes())?;
+            file.write_all(album.to_database_format().as_bytes())?;
+        }
         Ok(())
     }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
