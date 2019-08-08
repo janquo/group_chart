@@ -1,6 +1,5 @@
 #![feature(try_trait)]
 
-//#[macro_use]
 extern crate image;
 extern crate imageproc;
 extern crate num_rational;
@@ -23,6 +22,7 @@ use std::io::Write;
 pub mod drawer;
 pub mod reader;
 pub mod config;
+mod strings;
 
 
 pub struct Args {
@@ -60,7 +60,6 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            //mbid: data["mbid"].as_str().map(|s| String::from(s)),
             best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
             no_contributors: 1,
         }
@@ -74,7 +73,6 @@ impl Album {
             tracks: None,
             score: None,
             image: None,
-            //mbid: None,
             best_contributor: (String::from("NaN"), 0),
             no_contributors: 0,
         }
@@ -84,15 +82,6 @@ impl Album {
         database: &HashSet<Album>,
         key: &str,
     ) -> Result<bool, reqwest::Error> {
-        /* let request_url = if self.mbid.is_none()
-            || self.mbid.clone().unwrap_or(String::new()).is_empty() == true
-        {
-            format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
-                              key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"))
-        } else {
-            format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&mbid={}&format=json",
-                                                    key, self.mbid.clone().unwrap())
-        };*/
         if let Some(album) = database.get(&self) {
             self.tracks = album.tracks;
             self.image = album.image.clone();
@@ -253,15 +242,7 @@ impl Album {
                 String::from(artist.unwrap()),
                 String::from(title.unwrap()),
             ));
-            match current {
-                None => continue,
-                Some(x) => {
-                    if x.score.is_some() {
-                        //for example Prince 1999 appears to be 2-tracks on last.fm so should force file version
-                        //continue;
-                    }
-                }
-            }
+            if current.is_none() {continue;}
             let mut updated = (*(current.as_ref().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
             updated.compute_score();
@@ -277,8 +258,8 @@ impl Album {
             .create(true)
             .open(format!("{}database.txt", path))?;
 
-            file.write_all(album.to_database_format().as_bytes())?;
-        }
+        file.write_all(album.to_database_format().as_bytes())?;
+
         Ok(())
     }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
@@ -389,33 +370,11 @@ pub fn is_top_and_update_top(
     }
 }
 pub fn albums_to_html(albums: &Vec<&Album>) -> String {
-    let mut doc = String::from(
-    r##"<!doctype html>
-    <html lang="en">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-        <title>#tygodniowa</title>
-    </head>
-    <body>
-    <div class="card-columns">"##);
+    let mut doc = String::from(strings::header());
     for album in albums {
         doc.push_str(&album.to_html_card());
     }
-    doc.push_str(r##"</div>
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script crossorigin="anonymous" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script crossorigin="anonymous" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script crossorigin="anonymous" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    </body>
-    </html>"##);
+    doc.push_str(strings::footer());
     doc
 }
 pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
