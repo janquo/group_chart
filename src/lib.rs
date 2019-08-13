@@ -22,7 +22,6 @@ use std::io::Write;
 pub mod drawer;
 pub mod reader;
 pub mod config;
-mod strings;
 
 
 pub struct Args {
@@ -196,23 +195,7 @@ impl Album {
         )
     }
     pub fn to_html_card(&self) -> String {
-        format!(
-            r#"<div class="card mb-3">
-                <div class="row no-gutters">
-                <div class="col-md-4">
-                <img alt="alt" class="card-img" src="{}">
-                </div>
-                <div class="col-md-8">
-                <div class="card-body">
-                <h5 class="card-title">{} - {}</h5>
-                <p class="card-text">Scrobbles: {}</p>
-                <p class="card-text">Score: {:.2}</p>
-                <p class="card-text">Contributors number: {}</p>
-                <p class="card-text">Top: {} - {} scrobbles</p>
-                </div>
-                </div>
-                </div>
-                </div>"#,
+        format!(include_str!("../data/html_card"),
             match &self.image {
                 Some(x) => &x[..],
                 None => "blank.png",
@@ -370,11 +353,11 @@ pub fn is_top_and_update_top(
     }
 }
 pub fn albums_to_html(albums: &Vec<&Album>) -> String {
-    let mut doc = String::from(strings::header());
+    let mut doc = String::from(include_str!("../data/html_header"));
     for album in albums {
         doc.push_str(&album.to_html_card());
     }
-    doc.push_str(strings::footer());
+    doc.push_str(include_str!("../data/html_footer"));
     doc
 }
 pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {

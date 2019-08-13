@@ -21,7 +21,6 @@ pub fn load_database(path : &String) -> io::Result<HashSet<Album>> {
             tracks: tracks.unwrap().parse().ok(),
             score: None,
             image: image.map(String::from),
-            //mbid: None,
             best_contributor: (String::from(""), 0),
             no_contributors: 0,
         };

@@ -28,13 +28,13 @@ fn draw_description(
 ) {
     use rusttype::{FontCollection, Scale};
 
-    let font = Vec::from(include_bytes!("berlin-email.berlin-email.ttf") as &[u8]);
+    let font = Vec::from(include_bytes!("../data/berlin-email.berlin-email.ttf") as &[u8]);
     let font = FontCollection::from_bytes(font)
         .unwrap()
         .into_font()
         .unwrap();
 
-    let font_shadow = Vec::from(include_bytes!("berlin-email.berlin-email-schaddow.ttf") as &[u8]);
+    let font_shadow = Vec::from(include_bytes!("../data/berlin-email.berlin-email-schaddow.ttf") as &[u8]);
     let font_shadow = FontCollection::from_bytes(font_shadow)
         .unwrap()
         .into_font()
