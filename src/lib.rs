@@ -45,7 +45,6 @@ pub struct Album {
     tracks: Option<usize>,
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
-    //mbid: Option<String>,
     best_contributor: (String, i64),
     no_contributors: i64,
 }
@@ -80,6 +79,7 @@ impl Album {
         &mut self,
         database: &HashSet<Album>,
         key: &str,
+        client: &reqwest::Client,
     ) -> Result<bool, reqwest::Error> {
         if let Some(album) = database.get(&self) {
             self.tracks = album.tracks;
@@ -92,7 +92,7 @@ impl Album {
             let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
                                       key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
 
-            let mut response = reqwest::get(&request_url)?;
+            let mut response = client.get(&request_url).send()?;
 
             let data = response.json();
             let data: Value = match data {
@@ -258,10 +258,11 @@ impl Album {
 
     pub fn get_images(albums: &Vec<&Album>, path: &String) -> Vec<String> {
         let mut cover_urls: Vec<String> = Vec::new();
+        let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
                 Some(x) => {
-                    cover_urls.push(download_image(&x, path).unwrap_or(format!("{}blank.png", path)))
+                    cover_urls.push(download_image(&x, path, &client).unwrap_or(format!("{}blank.png", path)))
                 }
                 _ => cover_urls.push(format!("{}blank.png", path)),
             }
@@ -317,10 +318,10 @@ pub fn get_key(path: &String) -> String {
     contents
 }
 
-pub fn get_chart(user: &str, key: &str, period: &str) -> Result<Value, reqwest::Error> {
+pub fn get_chart(user: &str, key: &str, period: &str, client: &reqwest::Client) -> Result<Value, reqwest::Error> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
                               user, key, period);
-    let mut response = reqwest::get(&request_url)?;
+    let mut response = client.get(&request_url).send()?;
 
     let answer: Value = response.json()?;
     Ok(answer)
@@ -365,8 +366,8 @@ pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
     file.write_all(s.as_bytes())?;
     Ok(())
 }
-pub fn download_image(target: &str, path: &String) -> Result<String, reqwest::Error> {
-    let mut response = reqwest::get(target)?;
+pub fn download_image(target: &str, path: &String, client: &reqwest::Client) -> Result<String, reqwest::Error> {
+    let mut response = client.get(target).send()?;
     let result;
 
     let mut dest = {

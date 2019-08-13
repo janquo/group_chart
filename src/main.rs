@@ -26,9 +26,11 @@ fn main() {
 
     let no_users = users.len();
 
+    let client = reqwest::Client::new();
+
     for (progress, user) in users.iter().enumerate() {
         let user_data: serde_json::Value = loop {
-            let user_data = match get_chart(user, &key, &args.period) {
+            let user_data = match get_chart(user, &key, &args.period, &client) {
                 Err(x) => {
                     eprintln!(
                         "Couldn't aquire data for user {} because of {}\n trying again in a second...",
@@ -66,7 +68,6 @@ fn main() {
         Album::insert(&mut albums, user_albums, user);
 
         println!("{}/{}", progress + 1, no_users);
-        sleep(90); // don't overuse server
     }
 
     let albums = Album::rev_sorted_vec(albums);
@@ -86,10 +87,9 @@ fn main() {
 
     for (i, mut album) in albums.into_iter().enumerate() {
         eprintln!("{}/{}", i, albums_no);
-        sleep(125);
 
         loop {
-            match album.more_info(&database, &key) {
+            match album.more_info(&database, &key, &client) {
                 Ok(x) => {
                     if !x {
                         if let Err(e) = Album::add_to_database(&album, &args.path_write) {
