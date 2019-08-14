@@ -110,6 +110,10 @@ impl Album {
             };
             self.compute_score();
 
+            if self.tracks == None {
+                return Ok(true)
+            }
+            
             Ok(false)
         }
     }
