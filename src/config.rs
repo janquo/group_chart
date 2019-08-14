@@ -1,5 +1,5 @@
-use ConfigErr::*;
 use super::Args;
+use ConfigErr::*;
 
 pub fn load_args() -> Vec<String> {
     std::env::args().collect()

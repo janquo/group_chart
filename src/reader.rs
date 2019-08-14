@@ -1,9 +1,9 @@
-use std::io;
+use super::*;
 use std::collections::HashSet;
 use std::fs;
-use super::*;
+use std::io;
 
-pub fn load_database(path : &String) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
