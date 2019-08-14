@@ -2,6 +2,8 @@ use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
+use std::sync::mpsc;
+use std::thread;
 
 fn main() {
     let args = config::load_args();
@@ -28,46 +30,66 @@ fn main() {
 
     let client = reqwest::Client::new();
 
-    for (progress, user) in users.iter().enumerate() {
-        let user_data: serde_json::Value = loop {
-            let user_data = match get_chart(user, &key, &args.period, &client) {
-                Err(x) => {
-                    eprintln!(
-                        "Couldn't aquire data for user {} because of {}\n trying again in a second...",
-                        user, x
-                    );
-                    sleep(1000);
-                    continue;
+    let (transmitter, receiver) = mpsc::channel();
+
+    let mut handles = vec![];
+
+    for user in users.into_iter() {
+        let user2 = user.clone();
+        let trans_clone = transmitter.clone();
+        let client_clone = client.clone();
+        let period = args.period.clone();
+        let key2 = key.clone();
+        let handle = thread::spawn(move || {
+            let user_data: serde_json::Value = loop {
+                let user_data = match get_chart(&user2, &key2, &period, &client_clone) {
+                    Err(x) => {
+                        eprintln!(
+                            "Couldn't aquire data for user {} because of {}\n trying again in a second...",
+                            user, x
+                        );
+                        sleep(1000);
+                        return;
+                    }
+                    Ok(x) => x,
+                };
+
+                if user_data["error"] == serde_json::Value::Null {
+                    break user_data;
+                } else {
+                    let error_code = user_data["error"].as_i64().unwrap();
+                    eprintln!("Error code {} while reading user {}", error_code, user);
+                    if error_code == 29 {
+                        eprintln!("waiting...");
+                        sleep(2000);
+                    } else {
+                        eprintln!("escaping");
+                        break serde_json::Value::Null;
+                    }
                 }
-                Ok(x) => x,
             };
 
-            if user_data["error"] == serde_json::Value::Null {
-                break user_data;
-            } else {
-                let error_code = user_data["error"].as_i64().unwrap();
-                eprintln!("Error code {} while reading user {}", error_code, user);
-                if error_code == 29 {
-                    eprintln!("waiting...");
-                    sleep(2000);
-                } else {
-                    eprintln!("escaping");
-                    break serde_json::Value::Null;
+            let user_albums = match user_data["topalbums"]["album"].as_array() {
+                None => {
+                    eprintln!("User {} has no scrobbles. Continue to next user.", user);
+                    return;
                 }
-            }
-        };
+                Some(x) => x,
+            };
+            trans_clone.send((user_albums.clone(), user)).unwrap();
+        });
+        handles.push(handle)
+    }
+    let mut progress = 0;
+    for (user_albums, user) in receiver {
+        Album::insert(&mut albums, &user_albums, &user);
 
-        let user_albums = match user_data["topalbums"]["album"].as_array() {
-            None => {
-                eprintln!("User {} has no scrobbles. Continue to next user.", user);
-                continue;
-            }
-            Some(x) => x,
-        };
+        progress += 1;
 
-        Album::insert(&mut albums, user_albums, user);
-
-        println!("{}/{}", progress + 1, no_users);
+        println!("{}/{}", progress, no_users);
+    }
+    for child in handles {
+        child.join().expect("oops! the child thread panicked");
     }
 
     let albums = Album::rev_sorted_vec(albums);
