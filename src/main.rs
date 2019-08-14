@@ -35,7 +35,6 @@ fn main() {
     let mut handles = vec![];
 
     for user in users.into_iter() {
-        sleep(50);
         let user2 = user.clone();
         let trans_clone = mpsc::Sender::clone(&transmitter);
         let client_clone = client.clone();
