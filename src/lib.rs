@@ -19,10 +19,9 @@ use std::hash::{Hash, Hasher};
 use std::io;
 use std::io::Write;
 
+pub mod config;
 pub mod drawer;
 pub mod reader;
-pub mod config;
-
 
 pub struct Args {
     pub x: u32,
@@ -120,9 +119,13 @@ impl Album {
             return;
         }
         self.score = Some(Ratio::new(
-            if self.tracks == Some(1) {0} else {self.playcount},
-             self.tracks.unwrap() as i64)
-         );
+            if self.tracks == Some(1) {
+                0
+            } else {
+                self.playcount
+            },
+            self.tracks.unwrap() as i64,
+        ));
     }
 
     pub fn merge(&mut self, other: &Album) {
@@ -195,7 +198,8 @@ impl Album {
         )
     }
     pub fn to_html_card(&self) -> String {
-        format!(include_str!("../data/html_card"),
+        format!(
+            include_str!("../data/html_card"),
             match &self.image {
                 Some(x) => &x[..],
                 None => "blank.png",
@@ -213,7 +217,11 @@ impl Album {
         )
     }
 
-    pub fn tracks_from_file(albums: &mut BTreeSet<Album>, path_out: &String, path_write: &String) -> io::Result<()> {
+    pub fn tracks_from_file(
+        albums: &mut BTreeSet<Album>,
+        path_out: &String,
+        path_write: &String,
+    ) -> io::Result<()> {
         let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
         for line in content.lines() {
             let mut words = line.split(";");
@@ -225,7 +233,9 @@ impl Album {
                 String::from(artist.unwrap()),
                 String::from(title.unwrap()),
             ));
-            if current.is_none() {continue;}
+            if current.is_none() {
+                continue;
+            }
             let mut updated = (*(current.as_ref().unwrap())).clone();
             updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
             updated.compute_score();
@@ -235,7 +245,7 @@ impl Album {
         Ok(())
     }
 
-    pub fn add_to_database(album: &Album, path : &String) -> io::Result<()> {
+    pub fn add_to_database(album: &Album, path: &String) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
@@ -261,9 +271,9 @@ impl Album {
         let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
-                Some(x) => {
-                    cover_urls.push(download_image(&x, path, &client).unwrap_or(format!("{}blank.png", path)))
-                }
+                Some(x) => cover_urls.push(
+                    download_image(&x, path, &client).unwrap_or(format!("{}blank.png", path)),
+                ),
                 _ => cover_urls.push(format!("{}blank.png", path)),
             }
         }
@@ -318,7 +328,12 @@ pub fn get_key(path: &String) -> String {
     contents
 }
 
-pub fn get_chart(user: &str, key: &str, period: &str, client: &reqwest::Client) -> Result<Value, reqwest::Error> {
+pub fn get_chart(
+    user: &str,
+    key: &str,
+    period: &str,
+    client: &reqwest::Client,
+) -> Result<Value, reqwest::Error> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
                               user, key, period);
     let mut response = client.get(&request_url).send()?;
@@ -366,7 +381,11 @@ pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
     file.write_all(s.as_bytes())?;
     Ok(())
 }
-pub fn download_image(target: &str, path: &String, client: &reqwest::Client) -> Result<String, reqwest::Error> {
+pub fn download_image(
+    target: &str,
+    path: &String,
+    client: &reqwest::Client,
+) -> Result<String, reqwest::Error> {
     let mut response = client.get(target).send()?;
     let result;
 

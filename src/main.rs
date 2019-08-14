@@ -116,7 +116,9 @@ fn main() {
             }
         }
 
-        let smallest = -negative_scores_max_heap.peek().unwrap_or(&Ratio::new(-100000, 1));
+        let smallest = -negative_scores_max_heap
+            .peek()
+            .unwrap_or(&Ratio::new(-100_000, 1));
 
         //some prunning
         if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
@@ -169,7 +171,7 @@ fn main() {
 
     if args.web {
         let s = albums_to_html(&top);
-        if let Err(_) = save_index_html(&s, &args.path_web) {
+        if save_index_html(&s, &args.path_web).is_err() {
             eprint!("{}", s);
         }
     }
