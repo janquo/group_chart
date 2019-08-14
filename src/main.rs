@@ -35,8 +35,9 @@ fn main() {
     let mut handles = vec![];
 
     for user in users.into_iter() {
+        sleep(50);
         let user2 = user.clone();
-        let trans_clone = transmitter.clone();
+        let trans_clone = mpsc::Sender::clone(&transmitter);
         let client_clone = client.clone();
         let period = args.period.clone();
         let key2 = key.clone();
@@ -81,6 +82,7 @@ fn main() {
         handles.push(handle)
     }
     let mut progress = 0;
+    drop(transmitter);
     for (user_albums, user) in receiver {
         Album::insert(&mut albums, &user_albums, &user);
 
@@ -88,6 +90,7 @@ fn main() {
 
         println!("{}/{}", progress, no_users);
     }
+    println!("ook");
     for child in handles {
         child.join().expect("oops! the child thread panicked");
     }
