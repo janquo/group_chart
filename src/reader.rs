@@ -2,6 +2,25 @@ use super::*;
 use std::collections::HashSet;
 use std::fs;
 use std::io;
+use std::sync::Arc;
+
+pub struct Downloader {
+    user: String,
+    client: reqwest::Client,
+    key: Arc<String>,
+    period: Arc<String>,
+}
+
+impl Downloader {
+    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>) -> Downloader {
+        Downloader {
+            user: user,
+            client: reqwest::Client::new(),
+            key: Arc::clone(key),
+            period: Arc::clone(period),
+        }
+    }
+}
 
 pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
