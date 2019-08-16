@@ -2,6 +2,8 @@ use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
+use std::sync::mpsc;
+use std::sync::Arc;
 
 fn main() {
     let args = config::load_args();
@@ -28,46 +30,64 @@ fn main() {
 
     let client = reqwest::Client::new();
 
-    for (progress, user) in users.iter().enumerate() {
-        let user_data: serde_json::Value = loop {
-            let user_data = match get_chart(user, &key, &args.period, &client) {
-                Err(x) => {
-                    eprintln!(
-                        "Couldn't aquire data for user {} because of {}\n trying again in a second...",
-                        user, x
-                    );
-                    sleep(1000);
-                    continue;
-                }
-                Ok(x) => x,
-            };
+    let (transmitter, receiver) = mpsc::channel();
 
-            if user_data["error"] == serde_json::Value::Null {
-                break user_data;
-            } else {
-                let error_code = user_data["error"].as_i64().unwrap();
-                eprintln!("Error code {} while reading user {}", error_code, user);
-                if error_code == 29 {
-                    eprintln!("waiting...");
-                    sleep(2000);
-                } else {
-                    eprintln!("escaping");
-                    break serde_json::Value::Null;
-                }
+    let mut handles = vec![];
+
+    let key = Arc::new(key);
+
+    let period = Arc::new(args.period);
+
+    for user in users.into_iter() {
+        let command = reader::Downloader::new(user, &key, &period, &transmitter);
+        handles.push(command.delegate_get_chart());
+    }
+
+    drop(transmitter);
+    let mut progress = 0;
+    for (data, command) in receiver {
+        let user = command.get_user();
+        let user_data = match data {
+            Err(x) => {
+                eprintln!(
+                    "Couldn't aquire data for user {} because of {}\n trying again in a second...",
+                    user, x
+                );
+                command.wait_get_chart(1000);
+                continue;
             }
+            Ok(x) => x,
         };
+        if user_data["error"] != serde_json::Value::Null {
+            let error_code = user_data["error"].as_i64().unwrap();
+            eprintln!("Error code {} while reading user {}", error_code, user);
+            if error_code == 29 {
+                eprintln!("waiting...");
+                command.wait_get_chart(2000);
+            } else {
+                eprintln!("escaping");
+                progress += 1;
+                println!("{}/{}", progress, no_users);
+            }
+            continue;
+        }
 
         let user_albums = match user_data["topalbums"]["album"].as_array() {
             None => {
                 eprintln!("User {} has no scrobbles. Continue to next user.", user);
-                continue;
+                return;
             }
             Some(x) => x,
         };
 
-        Album::insert(&mut albums, user_albums, user);
+        Album::insert(&mut albums, &user_albums, &user);
 
-        println!("{}/{}", progress + 1, no_users);
+        progress += 1;
+        println!("{}/{}", progress, no_users);
+    }
+
+    for child in handles {
+        child.join().expect("oops! the child thread panicked");
     }
 
     let albums = Album::rev_sorted_vec(albums);

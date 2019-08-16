@@ -2,6 +2,47 @@ use super::*;
 use std::collections::HashSet;
 use std::fs;
 use std::io;
+use std::sync::Arc;
+
+
+pub struct APIError { }
+type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
+
+pub struct Downloader {
+    user: String,
+    client: reqwest::Client,
+    key: Arc<String>,
+    period: Arc<String>,
+    transmitter: Sender,
+}
+
+impl Downloader {
+    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>, transmitter: &Sender) -> Downloader {
+        Downloader {
+            user: user,
+            client: reqwest::Client::new(),
+            key: Arc::clone(key),
+            period: Arc::clone(period),
+            transmitter: std::sync::mpsc::Sender::clone(transmitter),
+        }
+    }
+
+    pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
+        std::thread::spawn(move || {
+            let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
+            std::sync::mpsc::Sender::clone(&self.transmitter).send((chart, self)).unwrap();
+        })
+    }
+
+    pub fn wait_get_chart(self, time: u64) -> std::thread::JoinHandle<()> {
+        super::sleep(time);
+        self.delegate_get_chart()
+    }
+
+    pub fn get_user(&self) -> &str {
+        &self.user
+    }
+}
 
 pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
