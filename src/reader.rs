@@ -4,8 +4,6 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 
-
-pub struct APIError { }
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
 pub struct Downloader {
@@ -19,7 +17,7 @@ pub struct Downloader {
 impl Downloader {
     pub fn new(user: String, key: &Arc<String>, period: &Arc<String>, transmitter: &Sender) -> Downloader {
         Downloader {
-            user: user,
+            user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
@@ -44,12 +42,12 @@ impl Downloader {
     }
 }
 
-pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
     for line in content.lines() {
-        let mut words = line.split(";");
+        let mut words = line.split(';');
         let (artist, title, tracks, image) =
             (words.next(), words.next(), words.next(), words.next());
         if artist == None || title == None {
