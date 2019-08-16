@@ -38,6 +38,10 @@ impl Downloader {
         super::sleep(time);
         self.delegate_get_chart()
     }
+
+    pub fn get_user(&self) -> &str {
+        &self.user
+    }
 }
 
 pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
