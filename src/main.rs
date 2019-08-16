@@ -4,6 +4,7 @@ use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
 use std::sync::mpsc;
 use std::thread;
+use std::sync::Arc;
 
 fn main() {
     let args = config::load_args();
@@ -34,12 +35,14 @@ fn main() {
 
     let mut handles = vec![];
 
+    let concurrent_key = Arc::new(key);
+    let concurrent_period = Arc::new(args.period);
+
     for user in users.into_iter() {
-        let user2 = user.clone();
-        let trans_clone = mpsc::Sender::clone(&transmitter);
-        let client_clone = client.clone();
-        let period = args.period.clone();
-        let key2 = key.clone();
+        let command = reader::Downloader::new(user, &concurrent_key, &concurrent_period, &transmitter);
+        handles.push(command.delegate_get_chart());
+    }
+    
         let handle = thread::spawn(move || {
             let user_data: serde_json::Value = loop {
                 let user_data = match get_chart(&user2, &key2, &period, &client_clone) {

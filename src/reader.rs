@@ -4,8 +4,9 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 
+
 pub struct APIError { }
-type Sender = std::sync::mpsc::Sender<Result<(Vec<serde_json::Value>, String), (APIError, Downloader)>>;
+type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
 pub struct Downloader {
     user: String,
@@ -22,18 +23,20 @@ impl Downloader {
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
-            transmitter: std::sync::mpsc::Sender::clone(transmitter)
+            transmitter: std::sync::mpsc::Sender::clone(transmitter),
         }
     }
 
-    pub fn get_user_data(self) -> std::thread::JoinHandle<()> {
-        unimplemented!();
-
+    pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
+        std::thread::spawn(move || {
+            let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
+            std::sync::mpsc::Sender::clone(&self.transmitter).send((chart, self)).unwrap();
+        })
     }
 
-    pub fn wait_get_user_data(self, time: u64) -> std::thread::JoinHandle<()> {
+    pub fn wait_get_chart(self, time: u64) -> std::thread::JoinHandle<()> {
         super::sleep(time);
-        self.get_user_data()
+        self.delegate_get_chart()
     }
 }
 
