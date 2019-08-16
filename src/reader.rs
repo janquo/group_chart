@@ -4,21 +4,36 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 
+pub struct APIError { }
+type Sender = std::sync::mpsc::Sender<Result<(Vec<serde_json::Value>, String), (APIError, Downloader)>>;
+
 pub struct Downloader {
     user: String,
     client: reqwest::Client,
     key: Arc<String>,
     period: Arc<String>,
+    transmitter: Sender,
 }
 
 impl Downloader {
-    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>) -> Downloader {
+    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>, transmitter: &Sender) -> Downloader {
         Downloader {
             user: user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
+            transmitter: std::sync::mpsc::Sender::clone(transmitter)
         }
+    }
+
+    pub fn get_user_data(self) -> std::thread::JoinHandle<()> {
+        unimplemented!();
+
+    }
+
+    pub fn wait_get_user_data(self, time: u64) -> std::thread::JoinHandle<()> {
+        super::sleep(time);
+        self.get_user_data()
     }
 }
 
