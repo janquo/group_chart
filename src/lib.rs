@@ -1,5 +1,3 @@
-#![feature(try_trait)]
-
 extern crate image;
 extern crate imageproc;
 extern crate num_rational;
@@ -276,7 +274,8 @@ impl Album {
         for album in albums.iter() {
             match &album.image {
                 Some(x) => cover_urls.push(
-                    download_image(&x, path, &client).unwrap_or_else(|_| format!("{}blank.png", path)),
+                    download_image(&x, path, &client)
+                        .unwrap_or_else(|_| format!("{}blank.png", path)),
                 ),
                 _ => cover_urls.push(format!("{}blank.png", path)),
             }
