@@ -113,7 +113,7 @@ impl Album {
             if self.tracks == None {
                 return Ok(true)
             }
-            
+
             Ok(false)
         }
     }
@@ -292,7 +292,10 @@ impl PartialEq for Album {
 impl Eq for Album {}
 impl Ord for Album {
     fn cmp(&self, other: &Album) -> Ordering {
-        self.title.cmp(&other.title)
+        match self.title.cmp(&other.title) {
+            Ordering::Equal => self.artist.cmp(&other.artist),
+            x => x,
+        }
     }
 }
 impl PartialOrd for Album {
