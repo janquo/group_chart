@@ -4,7 +4,6 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 
-
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
 pub struct Downloader {
@@ -16,7 +15,12 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>, transmitter: &Sender) -> Downloader {
+    pub fn new(
+        user: String,
+        key: &Arc<String>,
+        period: &Arc<String>,
+        transmitter: &Sender,
+    ) -> Downloader {
         Downloader {
             user: user,
             client: reqwest::Client::new(),
@@ -29,7 +33,9 @@ impl Downloader {
     pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
         std::thread::spawn(move || {
             let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
-            std::sync::mpsc::Sender::clone(&self.transmitter).send((chart, self)).unwrap();
+            std::sync::mpsc::Sender::clone(&self.transmitter)
+                .send((chart, self))
+                .unwrap();
         })
     }
 
@@ -43,7 +49,11 @@ impl Downloader {
     }
 }
 
-pub fn run_get_char_for_all_users(args: &Args, key: &Arc<String>, transmitter: Sender) -> Vec<std::thread::JoinHandle<()>>{
+pub fn run_get_char_for_all_users(
+    args: &Args,
+    key: &Arc<String>,
+    transmitter: Sender,
+) -> Vec<std::thread::JoinHandle<()>> {
     let mut handles = vec![];
 
     let users = args.load_users();

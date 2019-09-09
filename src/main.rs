@@ -185,12 +185,5 @@ fn main() {
         }
     }
 
-    drawer::collage(
-        cover_urls,
-        top,
-        args.x,
-        args.y,
-        args.captions,
-        &args.path_out,
-    );
+    drawer::collage(cover_urls, top, args);
 }

@@ -1,24 +1,20 @@
-pub fn collage(
-    images: Vec<String>,
-    albums: Vec<&super::Album>,
-    x: u32,
-    y: u32,
-    captions: bool,
-    path: &String,
-) {
+pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, args: super::Args) {
     use image::GenericImage;
+
+    let x = args.x;
+    let y = args.y;
 
     let mut img = image::DynamicImage::new_rgba8(300 * x, 300 * y);
 
     for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
         let img2 = image::open(image).unwrap_or(image::DynamicImage::new_rgba8(300 * x, 300 * y));
         let mut img2 = img2.to_rgba();
-        if captions {
+        if args.captions {
             draw_description(&mut img2, album.artist(), album.title());
         }
         img.copy_from(&img2, 300 * (i % x), 300 * (i / x));
     }
-    img.save(format!("{}test.png", path)).unwrap();
+    img.save(format!("{}test.png", args.path_out)).unwrap();
 }
 
 fn draw_description(
