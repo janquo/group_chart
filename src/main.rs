@@ -20,30 +20,19 @@ fn main() {
 
     let collage_size = args.size();
 
-    let users = args.load_users();
-
-    let key = args.get_key();
-
     let mut albums: BTreeSet<Album> = BTreeSet::new();
-
-    let no_users = users.len();
 
     let client = reqwest::Client::new();
 
     let (transmitter, receiver) = mpsc::channel();
 
-    let mut handles = vec![];
-
+    let key = args.get_key();
     let key = Arc::new(key);
 
-    let period = Arc::new(args.period);
+    let handles = reader::run_get_char_for_all_users(&args, &key, transmitter);
 
-    for user in users.into_iter() {
-        let command = reader::Downloader::new(user, &key, &period, &transmitter);
-        handles.push(command.delegate_get_chart());
-    }
+    let no_users = handles.len();
 
-    drop(transmitter);
     let mut progress = 0;
     for (data, command) in receiver {
         let user = command.get_user();

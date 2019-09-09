@@ -5,7 +5,6 @@ use std::io;
 use std::sync::Arc;
 
 
-pub struct APIError { }
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
 pub struct Downloader {
@@ -42,6 +41,20 @@ impl Downloader {
     pub fn get_user(&self) -> &str {
         &self.user
     }
+}
+
+pub fn run_get_char_for_all_users(args: &Args, key: &Arc<String>, transmitter: Sender) -> Vec<std::thread::JoinHandle<()>>{
+    let mut handles = vec![];
+
+    let users = args.load_users();
+
+    let period = Arc::new(args.period.clone());
+
+    for user in users.into_iter() {
+        let download_command = reader::Downloader::new(user, key, &period, &transmitter);
+        handles.push(download_command.delegate_get_chart());
+    }
+    handles
 }
 
 pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
