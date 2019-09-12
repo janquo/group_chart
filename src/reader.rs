@@ -22,7 +22,7 @@ impl Downloader {
         transmitter: &Sender,
     ) -> Downloader {
         Downloader {
-            user: user,
+            user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
@@ -72,7 +72,7 @@ pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
     for line in content.lines() {
-        let mut words = line.split(";");
+        let mut words = line.split(';');
         let (artist, title, tracks, image) =
             (words.next(), words.next(), words.next(), words.next());
         if artist == None || title == None {

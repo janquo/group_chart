@@ -11,7 +11,7 @@ pub fn load() -> Args {
         .expect("Something went wrong reading the config.ini file");
     let lines = lines.lines();
     for line in lines.into_iter() {
-        let mut words = line.split("=");
+        let mut words = line.split('=');
         let key = words.next().unwrap();
         let value = words.next().unwrap();
         match key {

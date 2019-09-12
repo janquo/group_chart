@@ -1,5 +1,3 @@
-#![feature(try_trait)]
-
 extern crate image;
 extern crate imageproc;
 extern crate num_rational;
@@ -106,12 +104,12 @@ impl Album {
 
             self.image = match data["album"]["image"].as_array() {
                 None => None,
-                Some(x) => x[3]["#text"].as_str().map(|s| String::from(s)),
+                Some(x) => x[3]["#text"].as_str().map(String::from),
             };
             self.compute_score();
 
             if self.tracks == None {
-                return Ok(true)
+                return Ok(true);
             }
 
             Ok(false)
@@ -154,7 +152,7 @@ impl Album {
         self.score
     }
 
-    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &Vec<Value>, user: &str) {
+    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &[Value], user: &str) {
         for album in user_albums
             .iter()
             .map(|x| Album::parse_album(x, String::from(user)))
@@ -223,12 +221,12 @@ impl Album {
 
     pub fn tracks_from_file(
         albums: &mut BTreeSet<Album>,
-        path_out: &String,
-        path_write: &String,
+        path_out: &str,
+        path_write: &str,
     ) -> io::Result<()> {
         let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
         for line in content.lines() {
-            let mut words = line.split(";");
+            let mut words = line.split(';');
             let (artist, title, tracks) = (words.next(), words.next(), words.next());
             if tracks == None {
                 continue;
@@ -249,7 +247,7 @@ impl Album {
         Ok(())
     }
 
-    pub fn add_to_database(album: &Album, path: &String) -> io::Result<()> {
+    pub fn add_to_database(album: &Album, path: &str) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
@@ -270,13 +268,14 @@ impl Album {
         top_some
     }
 
-    pub fn get_images(albums: &Vec<&Album>, path: &String) -> Vec<String> {
+    pub fn get_images(albums: &[&Album], path: &str) -> Vec<String> {
         let mut cover_urls: Vec<String> = Vec::new();
         let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
                 Some(x) => cover_urls.push(
-                    download_image(&x, path, &client).unwrap_or(format!("{}blank.png", path)),
+                    download_image(&x, path, &client)
+                        .unwrap_or_else(|_| format!("{}blank.png", path)),
                 ),
                 _ => cover_urls.push(format!("{}blank.png", path)),
             }
@@ -310,7 +309,7 @@ impl std::fmt::Display for Album {
             "{} - {}: {} ({})",
             self.artist,
             self.title,
-            self.score.unwrap_or(Ratio::new(0, 1)),
+            self.score.unwrap_or_else(|| Ratio::new(0, 1)),
             self.playcount
         )
     }
@@ -323,16 +322,15 @@ impl Hash for Album {
     }
 }
 
-pub fn get_users(path: &String) -> Vec<String> {
+pub fn get_users(path: &str) -> Vec<String> {
     let contents = fs::read_to_string(format!("{}users.txt", path))
-        .expect(&format!("Something went wrong reading {}users.txt", path));
+        .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
     contents.lines().map(String::from).collect()
 }
 
-pub fn get_key(path: &String) -> String {
-    let contents = fs::read_to_string(format!("{}key.txt", path))
-        .expect(&format!("Something went wrong reading {}key.txt", path));
-    contents
+pub fn get_key(path: &str) -> String {
+    fs::read_to_string(format!("{}key.txt", path))
+        .unwrap_or_else(|_| panic!("Something went wrong reading {}key.txt", path))
 }
 
 pub fn get_chart(
@@ -355,7 +353,7 @@ pub fn is_top_and_update_top(
     top_number: usize,
     scores: &mut BinaryHeap<Ratio<i64>>,
 ) -> bool {
-    let smallest = -scores.peek().unwrap_or(&Ratio::new(-100000, 1));
+    let smallest = -scores.peek().unwrap_or(&Ratio::new(-100_000, 1));
 
     match album.score() {
         Some(score) => {
@@ -375,7 +373,7 @@ pub fn is_top_and_update_top(
         None => true,
     }
 }
-pub fn albums_to_html(albums: &Vec<&Album>) -> String {
+pub fn albums_to_html(albums: &[&Album]) -> String {
     let mut doc = String::from(include_str!("../data/html_header"));
     for album in albums {
         doc.push_str(&album.to_html_card());
@@ -383,14 +381,14 @@ pub fn albums_to_html(albums: &Vec<&Album>) -> String {
     doc.push_str(include_str!("../data/html_footer"));
     doc
 }
-pub fn save_index_html(s: &String, path: &String) -> io::Result<()> {
+pub fn save_index_html(s: &str, path: &str) -> io::Result<()> {
     let mut file = File::create(format!("{}index.html", path))?;
     file.write_all(s.as_bytes())?;
     Ok(())
 }
 pub fn download_image(
     target: &str,
-    path: &String,
+    path: &str,
     client: &reqwest::Client,
 ) -> Result<String, reqwest::Error> {
     let mut response = client.get(target).send()?;
@@ -412,7 +410,7 @@ pub fn download_image(
     Ok(result)
 }
 
-pub fn nones_to_file(nones: &Vec<&Album>, path: &String) -> io::Result<()> {
+pub fn nones_to_file(nones: &[&Album], path: &str) -> io::Result<()> {
     let mut file = File::create(format!("{}nones.txt", path))?;
     file.write_all(
         nones
