@@ -4,8 +4,6 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 
-
-pub struct APIError { }
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
 pub struct Downloader {
@@ -17,9 +15,14 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(user: String, key: &Arc<String>, period: &Arc<String>, transmitter: &Sender) -> Downloader {
+    pub fn new(
+        user: String,
+        key: &Arc<String>,
+        period: &Arc<String>,
+        transmitter: &Sender,
+    ) -> Downloader {
         Downloader {
-            user: user,
+            user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
@@ -30,7 +33,9 @@ impl Downloader {
     pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
         std::thread::spawn(move || {
             let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
-            std::sync::mpsc::Sender::clone(&self.transmitter).send((chart, self)).unwrap();
+            std::sync::mpsc::Sender::clone(&self.transmitter)
+                .send((chart, self))
+                .unwrap();
         })
     }
 
@@ -44,12 +49,30 @@ impl Downloader {
     }
 }
 
+pub fn run_get_char_for_all_users(
+    args: &Args,
+    key: &Arc<String>,
+    transmitter: Sender,
+) -> Vec<std::thread::JoinHandle<()>> {
+    let mut handles = vec![];
+
+    let users = args.load_users();
+
+    let period = Arc::new(args.period.clone());
+
+    for user in users.into_iter() {
+        let download_command = reader::Downloader::new(user, key, &period, &transmitter);
+        handles.push(download_command.delegate_get_chart());
+    }
+    handles
+}
+
 pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
     for line in content.lines() {
-        let mut words = line.split(";");
+        let mut words = line.split(';');
         let (artist, title, tracks, image) =
             (words.next(), words.next(), words.next(), words.next());
         if artist == None || title == None {
