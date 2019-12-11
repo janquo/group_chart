@@ -29,9 +29,7 @@ fn main() {
     let key = args.get_key();
     let key = Arc::new(key);
 
-    let handles = reader::run_get_char_for_all_users(&args, &key, transmitter);
-
-    let no_users = handles.len();
+    let threadpool = reader::run_get_char_for_all_users(&args, &key, transmitter);
 
     let mut progress = 0;
     for (data, command) in receiver {
@@ -42,7 +40,7 @@ fn main() {
                     "Couldn't aquire data for user {} because of {}\n trying again in a second...",
                     user, x
                 );
-                command.wait_get_chart(1000);
+                threadpool.execute(move || {command.wait_get_chart(1000)});
                 continue;
             }
             Ok(x) => x,
@@ -52,11 +50,11 @@ fn main() {
             eprintln!("Error code {} while reading user {}", error_code, user);
             if error_code == 29 || (error_code == 8 && command.try_number < 5) {
                 eprintln!("waiting...");
-                command.wait_get_chart(2000);
+                threadpool.execute(move || {command.wait_get_chart(1000)});
             } else {
                 eprintln!("escaping");
                 progress += 1;
-                println!("{}/{}", progress, no_users);
+                println!("{} users processed", progress);
             }
             continue;
         }
@@ -72,12 +70,10 @@ fn main() {
         Album::insert(&mut albums, &user_albums, &user);
 
         progress += 1;
-        println!("{}/{}", progress, no_users);
+        println!("{} users processed", progress);
     }
 
-    for child in handles {
-        child.join().expect("oops! the child thread panicked");
-    }
+    threadpool.join();
 
     let albums = Album::rev_sorted_vec(albums);
 

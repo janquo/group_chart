@@ -6,6 +6,7 @@ extern crate rusttype;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
+extern crate threadpool;
 
 use num_rational::Ratio;
 use serde_json::Value;
