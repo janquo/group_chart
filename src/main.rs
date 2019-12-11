@@ -50,7 +50,7 @@ fn main() {
         if user_data["error"] != serde_json::Value::Null {
             let error_code = user_data["error"].as_i64().unwrap();
             eprintln!("Error code {} while reading user {}", error_code, user);
-            if error_code == 29 {
+            if error_code == 29 || (error_code == 8 && command.try_number < 5) {
                 eprintln!("waiting...");
                 command.wait_get_chart(2000);
             } else {

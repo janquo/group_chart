@@ -12,6 +12,7 @@ pub struct Downloader {
     key: Arc<String>,
     period: Arc<String>,
     transmitter: Sender,
+    pub try_number: usize,
 }
 
 impl Downloader {
@@ -27,10 +28,12 @@ impl Downloader {
             key: Arc::clone(key),
             period: Arc::clone(period),
             transmitter: std::sync::mpsc::Sender::clone(transmitter),
+            try_number: 0,
         }
     }
 
-    pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
+    pub fn delegate_get_chart(mut self) -> std::thread::JoinHandle<()> {
+        self.try_number += 1;
         std::thread::spawn(move || {
             let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
             std::sync::mpsc::Sender::clone(&self.transmitter)
