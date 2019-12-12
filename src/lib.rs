@@ -283,6 +283,20 @@ impl Album {
         }
         cover_urls
     }
+
+    pub fn has_cover(&self) -> bool {
+        match &self.image {
+            None => false,
+            Some(x) => !x.is_empty(),
+        }
+    }
+
+    pub fn tracks(&self) -> usize {
+        match &self.tracks {
+            None => 0,
+            Some(n) => *n,
+        }
+    }
 }
 impl PartialEq for Album {
     fn eq(&self, other: &Album) -> bool {

@@ -40,7 +40,7 @@ fn main() {
                     "Couldn't aquire data for user {} because of {}\n trying again in a second...",
                     user, x
                 );
-                threadpool.execute(move || {command.wait_get_chart(1000)});
+                threadpool.execute(move || command.wait_get_chart(1000));
                 continue;
             }
             Ok(x) => x,
@@ -50,7 +50,7 @@ fn main() {
             eprintln!("Error code {} while reading user {}", error_code, user);
             if error_code == 29 || (error_code == 8 && command.try_number < 5) {
                 eprintln!("waiting...");
-                threadpool.execute(move || {command.wait_get_chart(1000)});
+                threadpool.execute(move || command.wait_get_chart(1000));
             } else {
                 eprintln!("escaping");
                 progress += 1;

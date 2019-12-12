@@ -37,6 +37,7 @@ pub fn load() -> Args {
     args
 }
 
+#[derive(Debug)]
 pub enum ConfigErr {
     NoArgument,
     U32ParseError,

@@ -56,7 +56,7 @@ pub fn run_get_char_for_all_users(
     key: &Arc<String>,
     transmitter: Sender,
 ) -> ThreadPool {
-    let pool = ThreadPool::new(15);
+    let pool = ThreadPool::new(15); // no idea what number of threads is right
 
     let users = args.load_users();
 
@@ -64,7 +64,7 @@ pub fn run_get_char_for_all_users(
 
     for user in users.into_iter() {
         let download_command = reader::Downloader::new(user, key, &period, &transmitter);
-        pool.execute(move || {download_command.delegate_get_chart()});
+        pool.execute(move || download_command.delegate_get_chart());
     }
     pool
 }

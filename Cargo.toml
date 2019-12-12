@@ -3,6 +3,7 @@ name = "group_chart"
 version = "1.8.0"
 authors = ["Jan Guzik <jan.guzik@cs.ox.ac.uk>"]
 edition = "2018"
+default-run = "main"
 
 [dependencies]
 reqwest= "0.9.19"
