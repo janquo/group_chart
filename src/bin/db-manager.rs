@@ -4,10 +4,10 @@ fn main(){
     let args = config::load_args();
     let config = config::load();
     let args = config.parse(args).unwrap();
-    let key = args.get_key();
+    let _key = args.get_key();
     let mut database = reader::load_database(&args.path_write).unwrap();
 
-    let singles : Vec<Album> = database.iter().filter(|x| x.tracks() <= 2).cloned().collect();
+    let _singles : Vec<Album> = database.iter().filter(|x| x.tracks() <= 2).cloned().collect();
     let without_cover : Vec<Album> = database.iter().filter(|x| !x.has_cover()).cloned().collect();
 
     println!("hah {}", without_cover.len());

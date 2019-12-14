@@ -67,7 +67,9 @@ fn main() {
             Some(x) => x,
         };
 
-        Album::insert(&mut albums, &user_albums, &user);
+        let user_albums = user_albums.iter().map(|x| lastfmapi::parse_album(x, String::from(user))).collect();
+
+        Album::insert(&mut albums, user_albums);
 
         progress += 1;
         println!("{} users processed", progress);

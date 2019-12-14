@@ -35,7 +35,7 @@ impl Downloader {
 
     pub fn delegate_get_chart(mut self) {
         self.try_number += 1;
-        let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
+        let chart = lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client);
         std::sync::mpsc::Sender::clone(&self.transmitter)
             .send((chart, self))
             .unwrap();
