@@ -9,8 +9,8 @@ fn main() {
 
     let (spotify_id, spotify_secret) = args.get_spotify_auth();
 
-    let auth = spotifyapi::get_access_token(&spotify_id, &spotify_secret);
-    println!("{:?}", auth);
+    let auth = spotifyapi::get_access_token(&spotify_id, &spotify_secret).unwrap();
+    spotifyapi::search_album(&auth, "roadhouse blues");
     let _singles: Vec<Album> = database
         .iter()
         .filter(|x| x.tracks() <= 2)
