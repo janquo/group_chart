@@ -1,6 +1,6 @@
 use super::Album;
-use serde_json::Value;
 use reqwest;
+use serde_json::Value;
 
 pub fn parse_album(data: &Value, user: String) -> Album {
     Album {
@@ -29,7 +29,11 @@ pub fn get_chart(
     Ok(answer)
 }
 
-pub fn album_getinfo(album: &mut Album, key: &str, client: &reqwest::Client) -> Result<bool, reqwest::Error> {
+pub fn album_getinfo(
+    album: &mut Album,
+    key: &str,
+    client: &reqwest::Client,
+) -> Result<bool, reqwest::Error> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
                               key, album.artist.replace("&", "%26"), album.title.replace("&", "%26"));
 

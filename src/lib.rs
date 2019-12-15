@@ -21,6 +21,7 @@ pub mod config;
 pub mod drawer;
 pub mod reader;
 pub mod lastfmapi;
+pub mod spotifyapi;
 
 pub struct Args {
     pub x: u32,
@@ -300,12 +301,6 @@ pub fn get_users(path: &str) -> Vec<String> {
         .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
     contents.lines().map(String::from).collect()
 }
-
-pub fn get_key(path: &str) -> String {
-    fs::read_to_string(format!("{}key.txt", path))
-        .unwrap_or_else(|_| panic!("Something went wrong reading {}key.txt", path))
-}
-
 ///returns false if album shouldn't be considered
 pub fn is_top_and_update_top(
     album: &Album,

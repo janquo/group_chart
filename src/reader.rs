@@ -69,7 +69,7 @@ pub fn run_get_char_for_all_users(
     pool
 }
 
-pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;

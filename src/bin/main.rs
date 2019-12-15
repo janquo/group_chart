@@ -67,7 +67,10 @@ fn main() {
             Some(x) => x,
         };
 
-        let user_albums = user_albums.iter().map(|x| lastfmapi::parse_album(x, String::from(user))).collect();
+        let user_albums = user_albums
+            .iter()
+            .map(|x| lastfmapi::parse_album(x, String::from(user)))
+            .collect();
 
         Album::insert(&mut albums, user_albums);
 
