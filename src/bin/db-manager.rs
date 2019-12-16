@@ -10,7 +10,7 @@ fn main() {
     let (spotify_id, spotify_secret) = args.get_spotify_auth();
 
     let auth = spotifyapi::get_access_token(&spotify_id, &spotify_secret).unwrap();
-    spotifyapi::search_album(&auth, "roadhouse blues");
+
     let _singles: Vec<Album> = database
         .iter()
         .filter(|x| x.tracks() <= 2)
@@ -23,10 +23,11 @@ fn main() {
         .collect();
     println!("hah {}", without_cover.len());
     for mut album in without_cover.into_iter() {
-        println!("provide cover for {}", album);
         if album.tracks() <= 2 {
             continue;
         }
+        spotifyapi::search_album(&auth, &album, 2);
+        println!("provide cover for {}", album);
         let mut answer = String::new();
         std::io::stdin().read_line(&mut answer).unwrap();
         album.image = Some(answer);
