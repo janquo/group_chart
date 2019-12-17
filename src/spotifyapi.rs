@@ -16,7 +16,7 @@ pub fn get_access_token(id: &str, secret: &str) -> Result<String, reqwest::Error
 impl Album {
     fn from_value(value: &serde_json::Value) -> Self {
         let tracks = match value["album_type"].as_str().unwrap() {
-            "album" => value["total_tracks"].as_u64().unwrap(),
+            "album" | "compilation"=> value["total_tracks"].as_u64().unwrap(),
             "single" => 1,
             s => panic!("there is another option {}, implement it!", s),
         } as usize;

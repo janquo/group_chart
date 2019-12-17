@@ -11,11 +11,22 @@ fn main() {
 
     let auth = spotifyapi::get_access_token(&spotify_id, &spotify_secret).unwrap();
 
-    let _singles: Vec<Album> = database
+    let singles: Vec<Album> = database
         .iter()
         .filter(|x| x.tracks() <= 2)
         .cloned()
         .collect();
+    for mut album in singles.into_iter() {
+        let propositions = spotifyapi::search_album(&auth, &album, 2).unwrap();
+        if !propositions.is_empty() {
+            if propositions[0].tracks() > 1 {
+                album = propositions[0].clone();
+            } else if propositions.len() > 1 && propositions[1].tracks() > 1 {
+                album = propositions[1].clone();
+            }
+        }
+        database.replace(album);
+    }
     let without_cover: Vec<Album> = database
         .iter()
         .filter(|x| !x.has_cover())
@@ -26,11 +37,15 @@ fn main() {
         if album.tracks() <= 2 {
             continue;
         }
-        spotifyapi::search_album(&auth, &album, 2);
-        println!("provide cover for {}", album);
-        let mut answer = String::new();
-        std::io::stdin().read_line(&mut answer).unwrap();
-        album.image = Some(answer);
+        let spotify_album = spotifyapi::search_album(&auth, &album, 1);
+        if let Some(candidate) = spotify_album.unwrap().pop() {
+            album = candidate;
+        } else {
+            println!("provide cover for {}", album);
+            let mut answer = String::new();
+            std::io::stdin().read_line(&mut answer).unwrap();
+            album.image = Some(answer);
+        }
         database.replace(album);
     }
 
