@@ -9,7 +9,6 @@ extern crate serde_json;
 extern crate threadpool;
 
 use num_rational::Ratio;
-use serde_json::Value;
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
 use std::fs;
@@ -21,6 +20,8 @@ use std::io::Write;
 pub mod config;
 pub mod drawer;
 pub mod reader;
+pub mod lastfmapi;
+pub mod spotifyapi;
 
 pub struct Args {
     pub x: u32,
@@ -48,19 +49,6 @@ pub struct Album {
 }
 
 impl Album {
-    fn parse_album(data: &Value, user: String) -> Album {
-        Album {
-            title: String::from(data["name"].as_str().unwrap()),
-            artist: String::from(data["artist"]["name"].as_str().unwrap()),
-            playcount: data["playcount"].as_str().unwrap().parse().unwrap(),
-            tracks: None,
-            score: None,
-            image: None,
-            best_contributor: (user, data["playcount"].as_str().unwrap().parse().unwrap()),
-            no_contributors: 1,
-        }
-    }
-
     pub fn new(artist: String, title: String) -> Album {
         Album {
             title,
@@ -87,33 +75,7 @@ impl Album {
 
             Ok(true)
         } else {
-            let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
-                                      key, self.artist.replace("&", "%26"), self.title.replace("&", "%26"));
-
-            let mut response = client.get(&request_url).send()?;
-
-            let data = response.json();
-            let data: Value = match data {
-                Ok(x) => x,
-                _ => return Ok(true), //not an ideal solution, but shouldn't happen
-            };
-
-            self.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
-            if self.tracks == Some(0) {
-                self.tracks = None;
-            }
-
-            self.image = match data["album"]["image"].as_array() {
-                None => None,
-                Some(x) => x[3]["#text"].as_str().map(String::from),
-            };
-            self.compute_score();
-
-            if self.tracks == None {
-                return Ok(true);
-            }
-
-            Ok(false)
+            lastfmapi::album_getinfo(self, key, client)
         }
     }
 
@@ -153,11 +115,8 @@ impl Album {
         self.score
     }
 
-    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: &[Value], user: &str) {
-        for album in user_albums
-            .iter()
-            .map(|x| Album::parse_album(x, String::from(user)))
-        {
+    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: Vec<Album>) {
+        for album in user_albums {
             //insert returns false if same entry exists in a set
             if albums.contains(&album) {
                 let mut old = albums.take(&album).unwrap();
@@ -283,6 +242,20 @@ impl Album {
         }
         cover_urls
     }
+
+    pub fn has_cover(&self) -> bool {
+        match &self.image {
+            None => false,
+            Some(x) => !x.is_empty(),
+        }
+    }
+
+    pub fn tracks(&self) -> usize {
+        match &self.tracks {
+            None => 0,
+            Some(n) => *n,
+        }
+    }
 }
 impl PartialEq for Album {
     fn eq(&self, other: &Album) -> bool {
@@ -328,26 +301,6 @@ pub fn get_users(path: &str) -> Vec<String> {
         .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
     contents.lines().map(String::from).collect()
 }
-
-pub fn get_key(path: &str) -> String {
-    fs::read_to_string(format!("{}key.txt", path))
-        .unwrap_or_else(|_| panic!("Something went wrong reading {}key.txt", path))
-}
-
-pub fn get_chart(
-    user: &str,
-    key: &str,
-    period: &str,
-    client: &reqwest::Client,
-) -> Result<Value, reqwest::Error> {
-    let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
-                              user, key, period);
-    let mut response = client.get(&request_url).send()?;
-
-    let answer: Value = response.json()?;
-    Ok(answer)
-}
-
 ///returns false if album shouldn't be considered
 pub fn is_top_and_update_top(
     album: &Album,

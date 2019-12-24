@@ -35,7 +35,7 @@ impl Downloader {
 
     pub fn delegate_get_chart(mut self) {
         self.try_number += 1;
-        let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
+        let chart = lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client);
         std::sync::mpsc::Sender::clone(&self.transmitter)
             .send((chart, self))
             .unwrap();
@@ -56,7 +56,7 @@ pub fn run_get_char_for_all_users(
     key: &Arc<String>,
     transmitter: Sender,
 ) -> ThreadPool {
-    let pool = ThreadPool::new(15);
+    let pool = ThreadPool::new(15); // no idea what number of threads is right
 
     let users = args.load_users();
 
@@ -64,12 +64,12 @@ pub fn run_get_char_for_all_users(
 
     for user in users.into_iter() {
         let download_command = reader::Downloader::new(user, key, &period, &transmitter);
-        pool.execute(move || {download_command.delegate_get_chart()});
+        pool.execute(move || download_command.delegate_get_chart());
     }
     pool
 }
 
-pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;

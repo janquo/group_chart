@@ -1,4 +1,6 @@
 use super::Args;
+use serde_json;
+use std::fs;
 use ConfigErr::*;
 
 pub fn load_args() -> Vec<String> {
@@ -37,6 +39,7 @@ pub fn load() -> Args {
     args
 }
 
+#[derive(Debug)]
 pub enum ConfigErr {
     NoArgument,
     U32ParseError,
@@ -108,6 +111,18 @@ impl Args {
     }
 
     pub fn get_key(&self) -> String {
-        super::get_key(&self.path_read)
+        fs::read_to_string(format!("{}key.txt", &self.path_read))
+            .unwrap_or_else(|_| panic!("Something went wrong reading {}key.txt", &self.path_read))
+    }
+
+    pub fn get_spotify_auth(&self) -> (String, String) {
+        let path = format!("{}spotify.json", &self.path_read);
+        let file_content = fs::read_to_string(&path)
+            .unwrap_or_else(|_| panic!("Something went wrong reading {}", path));
+        let json: serde_json::Value = serde_json::from_str(&file_content).unwrap();
+        (
+            String::from(json["id"].as_str().unwrap()),
+            String::from(json["secret"].as_str().unwrap()),
+        )
     }
 }
