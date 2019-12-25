@@ -95,11 +95,21 @@ fn main() {
 
     let albums_no = albums.len();
 
+    let (id, secret) = args.get_spotify_auth();
+
+    let token = match spotifyapi::get_access_token(&id, &secret) {
+        Ok(token) => token,
+        Err(err) => {
+            eprintln!("Couldn't acquire spotify auth token {}", err);
+            String::from("")
+        }
+    };
+
     for (i, mut album) in albums.into_iter().enumerate() {
         eprintln!("{}/{}", i, albums_no);
 
         loop {
-            match album.more_info(&database, &key, &client) {
+            match album.more_info(&database, &args, &key, &token, &client) {
                 Ok(x) => {
                     if !x {
                         if let Err(e) = Album::add_to_database(&album, &args.path_write) {

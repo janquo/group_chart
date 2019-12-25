@@ -64,18 +64,27 @@ impl Album {
     pub fn more_info(
         &mut self,
         database: &HashSet<Album>,
+        args: &Args,
         key: &str,
+        token: &str,
         client: &reqwest::Client,
     ) -> Result<bool, reqwest::Error> {
         if let Some(album) = database.get(&self) {
             self.tracks = album.tracks;
             self.image = album.image.clone();
-
             self.compute_score();
-
             Ok(true)
         } else {
-            lastfmapi::album_getinfo(self, key, client)
+            let (key, secret) = args.get_spotify_auth();
+            if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
+                    self.tracks = album.tracks;
+                    self.image = album.image;
+                    self.compute_score();
+                    Ok(false)
+                }
+            else {
+                lastfmapi::album_getinfo(self, &key, client)
+            }
         }
     }
 

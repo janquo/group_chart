@@ -16,7 +16,7 @@ pub fn get_access_token(id: &str, secret: &str) -> Result<String, reqwest::Error
 impl Album {
     fn from_value(value: &serde_json::Value) -> Self {
         let tracks = match value["album_type"].as_str().unwrap() {
-            "album" | "compilation"=> value["total_tracks"].as_u64().unwrap(),
+            "album" | "compilation" => value["total_tracks"].as_u64().unwrap(),
             "single" => 1,
             s => panic!("there is another option {}, implement it!", s),
         } as usize;
@@ -67,4 +67,17 @@ pub fn search_album(
         .iter()
         .map(Album::from_value);
     Ok(albums.collect())
+}
+
+pub fn get_non_single(auth_token: &str, album: &Album) -> Result<Option<Album>, reqwest::Error> {
+    let mut albums = search_album(auth_token, album, 2)?;
+    let mut result = None;
+    if !albums.is_empty() {
+        if albums[0].tracks() > 1 {
+            result = Some(albums.remove(0));
+        } else if albums.len() > 1 && albums[1].tracks() > 1 {
+            result = Some(albums.remove(1));
+        }
+    }
+    Ok(result)
 }
