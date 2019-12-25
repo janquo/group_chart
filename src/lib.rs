@@ -19,8 +19,8 @@ use std::io::Write;
 
 pub mod config;
 pub mod drawer;
-pub mod reader;
 pub mod lastfmapi;
+pub mod reader;
 pub mod spotifyapi;
 
 pub struct Args {
@@ -64,7 +64,6 @@ impl Album {
     pub fn more_info(
         &mut self,
         database: &HashSet<Album>,
-        args: &Args,
         key: &str,
         token: &str,
         client: &reqwest::Client,
@@ -74,17 +73,13 @@ impl Album {
             self.image = album.image.clone();
             self.compute_score();
             Ok(true)
+        } else if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
+            self.tracks = album.tracks;
+            self.image = album.image;
+            self.compute_score();
+            Ok(false)
         } else {
-            let (key, secret) = args.get_spotify_auth();
-            if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
-                    self.tracks = album.tracks;
-                    self.image = album.image;
-                    self.compute_score();
-                    Ok(false)
-                }
-            else {
-                lastfmapi::album_getinfo(self, &key, client)
-            }
+            lastfmapi::album_getinfo(self, &key, client)
         }
     }
 

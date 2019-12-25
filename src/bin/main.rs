@@ -109,7 +109,7 @@ fn main() {
         eprintln!("{}/{}", i, albums_no);
 
         loop {
-            match album.more_info(&database, &args, &key, &token, &client) {
+            match album.more_info(&database, &key, &token, &client) {
                 Ok(x) => {
                     if !x {
                         if let Err(e) = Album::add_to_database(&album, &args.path_write) {
