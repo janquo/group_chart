@@ -29,7 +29,7 @@ fn main() {
     let key = args.get_key();
     let key = Arc::new(key);
 
-    let threadpool = reader::run_get_char_for_all_users(&args, &key, transmitter);
+    let threadpool = reader::run_get_chart_for_all_users(&args, &key, transmitter);
 
     let mut progress = 0;
     for (data, command) in receiver {
@@ -67,11 +67,13 @@ fn main() {
             Some(x) => x,
         };
 
-        let user_albums = user_albums
+        let mut user_albums = user_albums
             .iter()
             .map(|x| lastfmapi::parse_album(x, String::from(user)))
-            .collect();
-
+            .collect::<Vec<Album>>();
+        for album in user_albums.iter_mut() {
+            album.remove_descriptors_from_name();
+        }
         Album::insert(&mut albums, user_albums);
 
         progress += 1;

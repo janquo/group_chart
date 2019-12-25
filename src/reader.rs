@@ -51,7 +51,7 @@ impl Downloader {
     }
 }
 
-pub fn run_get_char_for_all_users(
+pub fn run_get_chart_for_all_users(
     args: &Args,
     key: &Arc<String>,
     transmitter: Sender,

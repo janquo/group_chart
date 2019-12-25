@@ -1,12 +1,15 @@
 extern crate image;
 extern crate imageproc;
 extern crate num_rational;
+extern crate regex;
 extern crate reqwest;
 extern crate rusttype;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate threadpool;
+#[macro_use]
+extern crate lazy_static;
 
 use num_rational::Ratio;
 use std::cmp::Ordering;
@@ -260,6 +263,22 @@ impl Album {
             Some(n) => *n,
         }
     }
+
+    pub fn remove_descriptors_from_name(&mut self) {
+        lazy_static! {
+            static ref REGEX: regex::Regex = regex::Regex::new(
+                r"\s?([\[\(][^\]\)]*|: |- )([Rr]emaster|[Dd]eluxe|([0-9]*th)? [Aa]nniversary)[^\[\(]*[\]\)]?\s?"
+            )
+            .unwrap();
+        }
+        #[cfg(debug_assertions)]
+        {
+            if REGEX.replace_all(&self.title, "") == "" {
+                println!("why is this nothing? {}", self);
+            }
+        }
+        self.title = String::from(REGEX.replace_all(&self.title, ""));
+    }
 }
 impl PartialEq for Album {
     fn eq(&self, other: &Album) -> bool {
@@ -392,5 +411,38 @@ pub fn wants_again() -> io::Result<bool> {
         Ok(false)
     } else {
         Ok(true)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn remove_descriptors_from_name_test() {
+        let examples = vec![
+            ("Innuendo (2011 Remaster)", "Innuendo"),
+            ("Judgement (Remastered)", "Judgement"),
+            ("Time And A Word [Expanded & Remastered]", "Time And A Word"),
+            ("Past Masters (Vols. 1 & 2 / Remastered)", "Past Masters"),
+            ("The Hybrid - Deluxe Edition", "The Hybrid"),
+            ("In Utero - 20th Anniversary Super Deluxe", "In Utero"),
+            (
+                "Beating a Dead Horse: Deluxe Ultra-Limited Exclusive Undead Edition",
+                "Beating a Dead Horse",
+            ),
+            ("David Live (2005 Mix, Remastered Version)", "David Live"),
+            (
+                "The Dark Side Of The Moon [Remastered] (Remastered Version)",
+                "The Dark Side Of The Moon",
+            ),
+            (
+                "Paul's Boutique (20th Anniversary Remastered Edition)",
+                "Paul's Boutique",
+            ),
+        ];
+        for (raw, processed) in examples.into_iter() {
+            let mut album = super::Album::new(String::new(), String::from(raw));
+            album.remove_descriptors_from_name();
+            assert_eq!(album.title, processed);
+        }
     }
 }
