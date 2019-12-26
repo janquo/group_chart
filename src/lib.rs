@@ -253,7 +253,7 @@ impl Album {
     pub fn has_cover(&self) -> bool {
         match &self.image {
             None => false,
-            Some(x) => !x.is_empty(),
+            Some(x) => !x.is_empty() && x != "blank.png",
         }
     }
 

@@ -4,7 +4,7 @@ fn main() {
     let args = config::load_args();
     let config = config::load();
     let args = config.parse(args).unwrap();
-    let _key = args.get_key();
+    let key = args.get_key();
     let mut database = reader::load_database(&args.path_write).unwrap();
 
     let (spotify_id, spotify_secret) = args.get_spotify_auth();
@@ -33,6 +33,8 @@ fn main() {
         .cloned()
         .collect();
     println!("hah {}", without_cover.len());
+
+    let client = reqwest::Client::new();
     for mut album in without_cover.into_iter() {
         if album.tracks() <= 2 {
             continue;
@@ -41,10 +43,7 @@ fn main() {
         if let Some(candidate) = spotify_album.unwrap().pop() {
             album = candidate;
         } else {
-            println!("provide cover for {}", album);
-            let mut answer = String::new();
-            std::io::stdin().read_line(&mut answer).unwrap();
-            album.image = Some(answer);
+            let _ = lastfmapi::album_getinfo(&mut album, &key, &client);
         }
         database.replace(album);
     }
