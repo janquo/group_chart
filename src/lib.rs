@@ -76,13 +76,16 @@ impl Album {
             self.image = album.image.clone();
             self.compute_score();
             Ok(true)
-        } else if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
-            self.tracks = album.tracks;
-            self.image = album.image;
-            self.compute_score();
-            Ok(false)
         } else {
-            lastfmapi::album_getinfo(self, &key, client)
+            if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
+                self.tracks = album.tracks;
+                self.image = album.image;
+                self.compute_score();
+            }
+            if self.tracks.is_none() || !self.has_cover() {
+                lastfmapi::album_getinfo(self, &key, client)?;
+            }
+            Ok(false)
         }
     }
 

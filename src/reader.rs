@@ -86,7 +86,10 @@ pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
             playcount: 0,
             tracks: tracks.unwrap().parse().ok(),
             score: None,
-            image: image.map(String::from),
+            image: match image {
+                Some("") | Some("blank.png") => None,
+                x => x.map(String::from),
+            },
             best_contributor: (String::from(""), 0),
             no_contributors: 0,
         };
