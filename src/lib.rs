@@ -70,22 +70,23 @@ impl Album {
         key: &str,
         token: &str,
         client: &reqwest::Client,
-    ) -> Result<bool, reqwest::Error> {
+    ) -> Result<bool, Box<dyn std::error::Error>> {
         if let Some(album) = database.get(&self) {
             self.tracks = album.tracks;
             self.image = album.image.clone();
             self.compute_score();
-            Ok(true)
-        } else {
-            if let Ok(Some(album)) = spotifyapi::get_non_single(token, &self) {
-                self.tracks = album.tracks;
-                self.image = album.image;
-                self.compute_score();
+        }
+        if self.score.is_none() || !self.has_cover() {
+            if let Some(album) = spotifyapi::get_non_single(token, &self)? {
+                self.merge_info(album);
             }
             if self.tracks.is_none() || !self.has_cover() {
-                lastfmapi::album_getinfo(self, &key, client)?;
+                let album = lastfmapi::album_getinfo(self, &key, client)?;
+                self.merge_info(album);
             }
             Ok(false)
+        } else {
+            Ok(true)
         }
     }
 
@@ -111,6 +112,20 @@ impl Album {
         }
     }
 
+    fn merge_info(&mut self, other: Album) {
+        if let Some(x) = other.tracks {
+            match self.tracks {
+                Some(y) if x <= y => (),
+                None | Some(_) => {
+                    self.tracks = other.tracks;
+                    self.compute_score();
+                }
+            };
+        }
+        if !self.has_cover() && other.has_cover() {
+            self.image = other.image;
+        }
+    }
     pub fn playcount(&self) -> i64 {
         self.playcount
     }

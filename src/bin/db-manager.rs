@@ -43,7 +43,7 @@ fn main() {
         if let Some(candidate) = spotify_album.unwrap().pop() {
             album = candidate;
         } else {
-            let _ = lastfmapi::album_getinfo(&mut album, &key, &client);
+            let _ = lastfmapi::album_getinfo(&album, &key, &client);
         }
         database.replace(album);
     }

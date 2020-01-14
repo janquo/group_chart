@@ -30,35 +30,31 @@ pub fn get_chart(
 }
 
 pub fn album_getinfo(
-    album: &mut Album,
+    album: &Album,
     key: &str,
     client: &reqwest::Client,
-) -> Result<bool, reqwest::Error> {
+) -> Result<Album, Box<dyn std::error::Error>> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
                               key, album.artist.replace("&", "%26"), album.title.replace("&", "%26"));
 
     let mut response = client.get(&request_url).send()?;
 
-    let data = response.json();
-    let data: Value = match data {
-        Ok(x) => x,
-        _ => return Ok(true), //not an ideal solution, but shouldn't happen
+    let data : Value = response.json()?;
+
+    let tracks = data["album"]["tracks"]["track"].as_array().map(Vec::len);
+
+    let image = match data["album"]["image"].as_array() {
+        Some(x) => x[3]["#text"].as_str().map(String::from),
+        None => None,
     };
 
-    if let Some(x) = data["album"]["tracks"]["track"].as_array().map(Vec::len) {
-        if x > 0 {
-            album.tracks = Some(x);
-        }
-    }
-    if let Some(x) = data["album"]["image"].as_array() {
-        album.image = x[3]["#text"].as_str().map(String::from);
-    }
+    let mut result = Album {
+        tracks,
+        image,
+        .. album.clone()
+    };
 
-    album.compute_score();
+    result.compute_score();
 
-    if album.tracks == None {
-        return Ok(true);
-    }
-
-    Ok(false)
+    Ok(result)
 }

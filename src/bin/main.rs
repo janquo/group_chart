@@ -124,15 +124,7 @@ fn main() {
                     break;
                 }
                 Err(x) => {
-                    eprintln!(
-                        "{} while reading {}",
-                        if x.is_timeout() {
-                            String::from("timeout")
-                        } else {
-                            format!("{:?}", x)
-                        },
-                        album
-                    );
+                    eprintln!("{} while reading {}", x.to_string(), album);
                     sleep(1000);
                 }
             }
