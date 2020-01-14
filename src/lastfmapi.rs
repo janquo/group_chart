@@ -45,15 +45,15 @@ pub fn album_getinfo(
         _ => return Ok(true), //not an ideal solution, but shouldn't happen
     };
 
-    album.tracks = data["album"]["tracks"]["track"].as_array().map(|x| x.len());
-    if album.tracks == Some(0) {
-        album.tracks = None;
+    if let Some(x) = data["album"]["tracks"]["track"].as_array().map(Vec::len) {
+        if x > 0 {
+            album.tracks = Some(x);
+        }
+    }
+    if let Some(x) = data["album"]["image"].as_array() {
+        album.image = x[3]["#text"].as_str().map(String::from);
     }
 
-    album.image = match data["album"]["image"].as_array() {
-        None => None,
-        Some(x) => x[3]["#text"].as_str().map(String::from),
-    };
     album.compute_score();
 
     if album.tracks == None {
