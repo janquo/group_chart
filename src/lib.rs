@@ -64,18 +64,7 @@ impl Album {
             no_contributors: 0,
         }
     }
-    pub fn more_info(
-        &mut self,
-        database: &HashSet<Album>,
-        key: &str,
-        token: &str,
-        client: &reqwest::Client,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
-        if let Some(album) = database.get(&self) {
-            self.tracks = album.tracks;
-            self.image = album.image.clone();
-            self.compute_score();
-        }
+    pub fn apis_info(&mut self, key: &str, token: &str, client: &reqwest::Client) -> Result<bool, Box<dyn std::error::Error>> {
         if self.score.is_none() || !self.has_cover() {
             if let Some(album) = spotifyapi::get_non_single(token, &self)? {
                 self.merge_info(album);
@@ -89,6 +78,22 @@ impl Album {
             Ok(true)
         }
     }
+
+    pub fn more_info(
+        &mut self,
+        database: &HashSet<Album>,
+        key: &str,
+        token: &str,
+        client: &reqwest::Client,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
+        if let Some(album) = database.get(&self) {
+            self.tracks = album.tracks;
+            self.image = album.image.clone();
+            self.compute_score();
+        }
+        self.apis_info(key, token, client)
+    }
+    
 
     fn compute_score(&mut self) {
         if self.tracks.is_none() || self.tracks == Some(0) {
@@ -112,7 +117,7 @@ impl Album {
         }
     }
 
-    fn merge_info(&mut self, other: Album) {
+    pub fn merge_info(&mut self, other: Album) {
         if let Some(x) = other.tracks {
             match self.tracks {
                 Some(y) if x <= y => (),

@@ -11,41 +11,29 @@ fn main() {
 
     let auth = spotifyapi::get_access_token(&spotify_id, &spotify_secret).unwrap();
 
-    let singles: Vec<Album> = database
+    let incomplete = database
         .iter()
-        .filter(|x| x.tracks() <= 2)
-        .cloned()
-        .collect();
-    for mut album in singles.into_iter() {
-        let propositions = spotifyapi::search_album(&auth, &album, 2).unwrap();
-        if !propositions.is_empty() {
-            if propositions[0].tracks() > 1 {
-                album = propositions[0].clone();
-            } else if propositions.len() > 1 && propositions[1].tracks() > 1 {
-                album = propositions[1].clone();
-            }
+        .filter(|x| x.tracks() <= 2 || !x.has_cover())
+        .cloned();
+
+    let mut without_duplicates = std::collections::HashSet::<Album>::new();
+
+    for mut album in incomplete.into_iter() {
+        if let Some(other) = without_duplicates.take(&album) {
+            album.merge_info(other);
         }
-        database.replace(album);
+        without_duplicates.insert(album);
     }
-    let without_cover: Vec<Album> = database
-        .iter()
-        .filter(|x| !x.has_cover())
-        .cloned()
-        .collect();
-    println!("hah {}", without_cover.len());
 
     let client = reqwest::Client::new();
-    for mut album in without_cover.into_iter() {
-        if album.tracks() <= 2 {
-            continue;
+
+    for mut album in without_duplicates.into_iter() {
+        if let Err(e) = album.apis_info(&key, &auth, &client) {
+            println!("couldn't repair an album because of {}", e.to_string());
         }
-        let spotify_album = spotifyapi::search_album(&auth, &album, 1);
-        if let Some(candidate) = spotify_album.unwrap().pop() {
-            album = candidate;
-        } else {
-            let _ = lastfmapi::album_getinfo(&album, &key, &client);
+        else {
+            database.replace(album).unwrap();
         }
-        database.replace(album);
     }
 
     for album in database {
