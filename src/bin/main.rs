@@ -29,9 +29,7 @@ fn main() {
     let key = args.get_key();
     let key = Arc::new(key);
 
-    let handles = reader::run_get_char_for_all_users(&args, &key, transmitter);
-
-    let no_users = handles.len();
+    let threadpool = reader::run_get_chart_for_all_users(&args, &key, transmitter);
 
     let mut progress = 0;
     for (data, command) in receiver {
@@ -42,7 +40,7 @@ fn main() {
                     "Couldn't aquire data for user {} because of {}\n trying again in a second...",
                     user, x
                 );
-                command.wait_get_chart(1000);
+                threadpool.execute(move || command.wait_get_chart(1000));
                 continue;
             }
             Ok(x) => x,
@@ -50,13 +48,13 @@ fn main() {
         if user_data["error"] != serde_json::Value::Null {
             let error_code = user_data["error"].as_i64().unwrap();
             eprintln!("Error code {} while reading user {}", error_code, user);
-            if error_code == 29 {
+            if error_code == 29 || (error_code == 8 && command.try_number < 5) {
                 eprintln!("waiting...");
-                command.wait_get_chart(2000);
+                threadpool.execute(move || command.wait_get_chart(1000));
             } else {
                 eprintln!("escaping");
                 progress += 1;
-                println!("{}/{}", progress, no_users);
+                println!("{} users processed", progress);
             }
             continue;
         }
@@ -69,15 +67,20 @@ fn main() {
             Some(x) => x,
         };
 
-        Album::insert(&mut albums, &user_albums, &user);
+        let mut user_albums = user_albums
+            .iter()
+            .map(|x| lastfmapi::parse_album(x, String::from(user)))
+            .collect::<Vec<Album>>();
+        for album in user_albums.iter_mut() {
+            album.remove_descriptors_from_name();
+        }
+        Album::insert(&mut albums, user_albums);
 
         progress += 1;
-        println!("{}/{}", progress, no_users);
+        println!("{} users processed", progress);
     }
 
-    for child in handles {
-        child.join().expect("oops! the child thread panicked");
-    }
+    threadpool.join();
 
     let albums = Album::rev_sorted_vec(albums);
 
@@ -94,11 +97,21 @@ fn main() {
 
     let albums_no = albums.len();
 
+    let (id, secret) = args.get_spotify_auth();
+
+    let token = match spotifyapi::get_access_token(&id, &secret) {
+        Ok(token) => token,
+        Err(err) => {
+            eprintln!("Couldn't acquire spotify auth token {}", err);
+            String::from("")
+        }
+    };
+
     for (i, mut album) in albums.into_iter().enumerate() {
         eprintln!("{}/{}", i, albums_no);
 
         loop {
-            match album.more_info(&database, &key, &client) {
+            match album.more_info(&database, &key, &token, &client) {
                 Ok(x) => {
                     if !x {
                         if let Err(e) = Album::add_to_database(&album, &args.path_write) {
@@ -111,15 +124,7 @@ fn main() {
                     break;
                 }
                 Err(x) => {
-                    eprintln!(
-                        "{} while reading {}",
-                        if x.is_timeout() {
-                            String::from("timeout")
-                        } else {
-                            format!("{:?}", x)
-                        },
-                        album
-                    );
+                    eprintln!("{} while reading {}", x.to_string(), album);
                     sleep(1000);
                 }
             }

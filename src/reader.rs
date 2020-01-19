@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::sync::Arc;
+use threadpool::ThreadPool;
 
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
@@ -12,6 +13,7 @@ pub struct Downloader {
     key: Arc<String>,
     period: Arc<String>,
     transmitter: Sender,
+    pub try_number: usize,
 }
 
 impl Downloader {
@@ -27,21 +29,21 @@ impl Downloader {
             key: Arc::clone(key),
             period: Arc::clone(period),
             transmitter: std::sync::mpsc::Sender::clone(transmitter),
+            try_number: 0,
         }
     }
 
-    pub fn delegate_get_chart(self) -> std::thread::JoinHandle<()> {
-        std::thread::spawn(move || {
-            let chart = get_chart(&self.user, &self.key, &self.period, &self.client);
-            std::sync::mpsc::Sender::clone(&self.transmitter)
-                .send((chart, self))
-                .unwrap();
-        })
+    pub fn delegate_get_chart(mut self) {
+        self.try_number += 1;
+        let chart = lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client);
+        std::sync::mpsc::Sender::clone(&self.transmitter)
+            .send((chart, self))
+            .unwrap();
     }
 
-    pub fn wait_get_chart(self, time: u64) -> std::thread::JoinHandle<()> {
+    pub fn wait_get_chart(self, time: u64) {
         super::sleep(time);
-        self.delegate_get_chart()
+        self.delegate_get_chart();
     }
 
     pub fn get_user(&self) -> &str {
@@ -49,12 +51,12 @@ impl Downloader {
     }
 }
 
-pub fn run_get_char_for_all_users(
+pub fn run_get_chart_for_all_users(
     args: &Args,
     key: &Arc<String>,
     transmitter: Sender,
-) -> Vec<std::thread::JoinHandle<()>> {
-    let mut handles = vec![];
+) -> ThreadPool {
+    let pool = ThreadPool::new(15); // no idea what number of threads is right
 
     let users = args.load_users();
 
@@ -62,12 +64,12 @@ pub fn run_get_char_for_all_users(
 
     for user in users.into_iter() {
         let download_command = reader::Downloader::new(user, key, &period, &transmitter);
-        handles.push(download_command.delegate_get_chart());
+        pool.execute(move || download_command.delegate_get_chart());
     }
-    handles
+    pool
 }
 
-pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
@@ -84,7 +86,10 @@ pub fn load_database(path: &String) -> io::Result<HashSet<Album>> {
             playcount: 0,
             tracks: tracks.unwrap().parse().ok(),
             score: None,
-            image: image.map(String::from),
+            image: match image {
+                Some("") | Some("blank.png") => None,
+                x => x.map(String::from),
+            },
             best_contributor: (String::from(""), 0),
             no_contributors: 0,
         };
