@@ -12,9 +12,9 @@ extern crate threadpool;
 extern crate lazy_static;
 
 use num_rational::Ratio;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
-use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -39,15 +39,23 @@ pub struct Args {
     pub path_web: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Album {
     title: String,
     artist: String,
+
+    #[serde(skip)]
     playcount: i64,
     tracks: Option<usize>,
+
+    #[serde(skip)]
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
+
+    #[serde(skip)]
     best_contributor: (String, i64),
+
+    #[serde(skip)]
     no_contributors: i64,
 }
 
@@ -64,7 +72,12 @@ impl Album {
             no_contributors: 0,
         }
     }
-    pub fn apis_info(&mut self, key: &str, token: &str, client: &reqwest::Client) -> Result<bool, Box<dyn std::error::Error>> {
+    pub fn apis_info(
+        &mut self,
+        key: &str,
+        token: &str,
+        client: &reqwest::Client,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
         if self.score.is_none() || !self.has_cover() {
             if let Some(album) = spotifyapi::get_non_single(token, &self)? {
                 self.merge_info(album);
@@ -93,7 +106,6 @@ impl Album {
         }
         self.apis_info(key, token, client)
     }
-    
 
     fn compute_score(&mut self) {
         if self.tracks.is_none() || self.tracks == Some(0) {
@@ -177,18 +189,6 @@ impl Album {
     pub fn to_string_semic(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
     }
-    pub fn to_database_format(&self) -> String {
-        format!(
-            "{};{};{};{}\n",
-            self.artist,
-            self.title,
-            self.tracks.unwrap_or(0),
-            match &self.image {
-                Some(x) => &x[..],
-                None => "blank.png",
-            }
-        )
-    }
     pub fn to_html_card(&self) -> String {
         format!(
             include_str!("../data/html_card"),
@@ -209,41 +209,13 @@ impl Album {
         )
     }
 
-    pub fn tracks_from_file(
-        albums: &mut BTreeSet<Album>,
-        path_out: &str,
-        path_write: &str,
-    ) -> io::Result<()> {
-        let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
-        for line in content.lines() {
-            let mut words = line.split(';');
-            let (artist, title, tracks) = (words.next(), words.next(), words.next());
-            if tracks == None {
-                continue;
-            }
-            let current = albums.get(&Album::new(
-                String::from(artist.unwrap()),
-                String::from(title.unwrap()),
-            ));
-            if current.is_none() {
-                continue;
-            }
-            let mut updated = (*(current.as_ref().unwrap())).clone();
-            updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
-            updated.compute_score();
-            Album::add_to_database(&updated, path_write)?;
-            albums.replace(updated);
-        }
-        Ok(())
-    }
-
     pub fn add_to_database(album: &Album, path: &str) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
             .open(format!("{}database.txt", path))?;
 
-        file.write_all(album.to_database_format().as_bytes())?;
+        file.write_all(format!("{}\n", serde_json::to_string(&album)?).as_bytes())?;
 
         Ok(())
     }
@@ -342,11 +314,6 @@ impl Hash for Album {
     }
 }
 
-pub fn get_users(path: &str) -> Vec<String> {
-    let contents = fs::read_to_string(format!("{}users.txt", path))
-        .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
-    contents.lines().map(String::from).collect()
-}
 ///returns false if album shouldn't be considered
 pub fn is_top_and_update_top(
     album: &Album,
@@ -439,6 +406,8 @@ pub fn wants_again() -> io::Result<bool> {
 
 #[cfg(test)]
 mod tests {
+    use super::Album;
+
     #[test]
     fn remove_descriptors_from_name_test() {
         let examples = vec![
@@ -467,5 +436,24 @@ mod tests {
             album.remove_descriptors_from_name();
             assert_eq!(album.title, processed);
         }
+    }
+
+    #[test]
+    fn serialize_album() {
+        let album = Album {
+            title: String::from("Black Celebration"),
+            artist: String::from("Depeche Mode"),
+            playcount: 57,
+            tracks: Some(22),
+            score: None,
+            image: Some(String::from("blank.png")),
+            best_contributor: (String::from("janquo"), 43),
+            no_contributors: 2,
+        };
+
+        assert_eq!(
+            &serde_json::from_str::<Album>(&serde_json::to_string(&album).unwrap()).unwrap(),
+            &album
+        );
     }
 }

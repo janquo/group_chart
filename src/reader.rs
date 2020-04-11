@@ -74,28 +74,44 @@ pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
     for line in content.lines() {
-        let mut words = line.split(';');
-        let (artist, title, tracks, image) =
-            (words.next(), words.next(), words.next(), words.next());
-        if artist == None || title == None {
-            continue;
-        }
-        let album = Album {
-            title: String::from(title.unwrap()),
-            artist: String::from(artist.unwrap()),
-            playcount: 0,
-            tracks: tracks.unwrap().parse().ok(),
-            score: None,
-            image: match image {
-                Some("") | Some("blank.png") => None,
-                x => x.map(String::from),
-            },
-            best_contributor: (String::from(""), 0),
-            no_contributors: 0,
-        };
+        let album: Album = serde_json::from_str(line)?;
         if !database.insert(album) {
             eprintln!("record doubled in a database");
         }
     }
     Ok(database)
+}
+
+pub fn tracks_from_file(
+    albums: &mut BTreeSet<Album>,
+    path_out: &str,
+    path_write: &str,
+) -> io::Result<()> {
+    let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
+    for line in content.lines() {
+        let mut words = line.split(';');
+        let (artist, title, tracks) = (words.next(), words.next(), words.next());
+        if tracks == None {
+            continue;
+        }
+        let current = albums.get(&Album::new(
+            String::from(artist.unwrap()),
+            String::from(title.unwrap()),
+        ));
+        if current.is_none() {
+            continue;
+        }
+        let mut updated = (*(current.as_ref().unwrap())).clone();
+        updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
+        updated.compute_score();
+        Album::add_to_database(&updated, path_write)?;
+        albums.replace(updated);
+    }
+    Ok(())
+}
+
+pub fn get_users(path: &str) -> Vec<String> {
+    let contents = fs::read_to_string(format!("{}users.txt", path))
+        .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
+    contents.lines().map(String::from).collect()
 }

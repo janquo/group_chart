@@ -1,5 +1,4 @@
 use super::Args;
-use serde_json;
 use std::fs;
 use ConfigErr::*;
 
@@ -101,7 +100,7 @@ impl Args {
 
     pub fn load_users(&self) -> Vec<String> {
         match &self.nick {
-            None => super::get_users(&self.path_read),
+            None => super::reader::get_users(&self.path_read),
             Some(nick) => vec![nick.clone()],
         }
     }

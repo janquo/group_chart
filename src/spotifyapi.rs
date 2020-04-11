@@ -1,6 +1,4 @@
 use super::Album;
-use reqwest;
-use serde_json;
 
 pub fn get_access_token(id: &str, secret: &str) -> Result<String, reqwest::Error> {
     let client = reqwest::Client::new();
