@@ -7,12 +7,13 @@ pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, args: super::Arg
     let mut img = image::DynamicImage::new_rgba8(300 * x, 300 * y);
 
     for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
-        let img2 = image::open(image).unwrap_or_else(|_| image::DynamicImage::new_rgba8(300 * x, 300 * y));
+        let img2 =
+            image::open(image).unwrap_or_else(|_| image::DynamicImage::new_rgba8(300 * x, 300 * y));
         let mut img2 = img2.to_rgba();
         if args.captions {
             draw_description(&mut img2, album.artist(), album.title());
         }
-        img.copy_from(&img2, 300 * (i % x), 300 * (i / x));
+        img.copy_from(&img2, 300 * (i % x), 300 * (i / x)).unwrap();
     }
     img.save(format!("{}test.png", args.path_out)).unwrap();
 }

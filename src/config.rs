@@ -1,5 +1,4 @@
 use super::Args;
-use serde_json;
 use std::fs;
 use ConfigErr::*;
 

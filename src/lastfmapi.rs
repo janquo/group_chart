@@ -1,5 +1,4 @@
 use super::Album;
-use reqwest;
 use serde_json::Value;
 
 pub fn parse_album(data: &Value, user: String) -> Album {
@@ -39,7 +38,7 @@ pub fn album_getinfo(
 
     let mut response = client.get(&request_url).send()?;
 
-    let data : Value = response.json()?;
+    let data: Value = response.json()?;
 
     let tracks = data["album"]["tracks"]["track"].as_array().map(Vec::len);
 
@@ -51,7 +50,7 @@ pub fn album_getinfo(
     let mut result = Album {
         tracks,
         image,
-        .. album.clone()
+        ..album.clone()
     };
 
     result.compute_score();

@@ -12,6 +12,7 @@ extern crate threadpool;
 extern crate lazy_static;
 
 use num_rational::Ratio;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
 use std::fs;
@@ -39,15 +40,23 @@ pub struct Args {
     pub path_web: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Album {
     title: String,
     artist: String,
+
+    #[serde(skip)]
     playcount: i64,
     tracks: Option<usize>,
+
+    #[serde(skip)]
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
+
+    #[serde(skip)]
     best_contributor: (String, i64),
+
+    #[serde(skip)]
     no_contributors: i64,
 }
 
@@ -64,7 +73,12 @@ impl Album {
             no_contributors: 0,
         }
     }
-    pub fn apis_info(&mut self, key: &str, token: &str, client: &reqwest::Client) -> Result<bool, Box<dyn std::error::Error>> {
+    pub fn apis_info(
+        &mut self,
+        key: &str,
+        token: &str,
+        client: &reqwest::Client,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
         if self.score.is_none() || !self.has_cover() {
             if let Some(album) = spotifyapi::get_non_single(token, &self)? {
                 self.merge_info(album);
@@ -93,7 +107,6 @@ impl Album {
         }
         self.apis_info(key, token, client)
     }
-    
 
     fn compute_score(&mut self) {
         if self.tracks.is_none() || self.tracks == Some(0) {
@@ -439,6 +452,8 @@ pub fn wants_again() -> io::Result<bool> {
 
 #[cfg(test)]
 mod tests {
+    use super::Album;
+
     #[test]
     fn remove_descriptors_from_name_test() {
         let examples = vec![
@@ -467,5 +482,24 @@ mod tests {
             album.remove_descriptors_from_name();
             assert_eq!(album.title, processed);
         }
+    }
+
+    #[test]
+    fn serialize_album() {
+        let album = Album {
+            title: String::from("Black Celebration"),
+            artist: String::from("Depeche Mode"),
+            playcount: 57,
+            tracks: Some(22),
+            score: None,
+            image: Some(String::from("blank.png")),
+            best_contributor: (String::from("janquo"), 43),
+            no_contributors: 2,
+        };
+
+        assert_eq!(
+            &serde_json::from_str::<Album>(&serde_json::to_string(&album).unwrap()).unwrap(),
+            &album
+        );
     }
 }

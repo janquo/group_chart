@@ -125,6 +125,9 @@ fn main() {
                 }
                 Err(x) => {
                     eprintln!("{} while reading {}", x.to_string(), album);
+                    if format!("{}", album).contains('#') {
+                        break;
+                    }
                     sleep(1000);
                 }
             }
