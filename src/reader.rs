@@ -74,25 +74,7 @@ pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
 
     let content = fs::read_to_string(format!("{}database.txt", path))?;
     for line in content.lines() {
-        let mut words = line.split(';');
-        let (artist, title, tracks, image) =
-            (words.next(), words.next(), words.next(), words.next());
-        if artist == None || title == None {
-            continue;
-        }
-        let album = Album {
-            title: String::from(title.unwrap()),
-            artist: String::from(artist.unwrap()),
-            playcount: 0,
-            tracks: tracks.unwrap().parse().ok(),
-            score: None,
-            image: match image {
-                Some("") | Some("blank.png") => None,
-                x => x.map(String::from),
-            },
-            best_contributor: (String::from(""), 0),
-            no_contributors: 0,
-        };
+        let album: Album = serde_json::from_str(line)?;
         if !database.insert(album) {
             eprintln!("record doubled in a database");
         }

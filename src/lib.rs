@@ -190,18 +190,6 @@ impl Album {
     pub fn to_string_semic(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
     }
-    pub fn to_database_format(&self) -> String {
-        format!(
-            "{};{};{};{}\n",
-            self.artist,
-            self.title,
-            self.tracks.unwrap_or(0),
-            match &self.image {
-                Some(x) => &x[..],
-                None => "blank.png",
-            }
-        )
-    }
     pub fn to_html_card(&self) -> String {
         format!(
             include_str!("../data/html_card"),
@@ -256,7 +244,7 @@ impl Album {
             .create(true)
             .open(format!("{}database.txt", path))?;
 
-        file.write_all(album.to_database_format().as_bytes())?;
+        file.write_all(format!("{}\n", serde_json::to_string(&album)?).as_bytes())?;
 
         Ok(())
     }
