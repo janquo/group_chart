@@ -15,7 +15,6 @@ use num_rational::Ratio;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, HashSet};
-use std::fs;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -210,34 +209,6 @@ impl Album {
         )
     }
 
-    pub fn tracks_from_file(
-        albums: &mut BTreeSet<Album>,
-        path_out: &str,
-        path_write: &str,
-    ) -> io::Result<()> {
-        let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
-        for line in content.lines() {
-            let mut words = line.split(';');
-            let (artist, title, tracks) = (words.next(), words.next(), words.next());
-            if tracks == None {
-                continue;
-            }
-            let current = albums.get(&Album::new(
-                String::from(artist.unwrap()),
-                String::from(title.unwrap()),
-            ));
-            if current.is_none() {
-                continue;
-            }
-            let mut updated = (*(current.as_ref().unwrap())).clone();
-            updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
-            updated.compute_score();
-            Album::add_to_database(&updated, path_write)?;
-            albums.replace(updated);
-        }
-        Ok(())
-    }
-
     pub fn add_to_database(album: &Album, path: &str) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
@@ -343,11 +314,6 @@ impl Hash for Album {
     }
 }
 
-pub fn get_users(path: &str) -> Vec<String> {
-    let contents = fs::read_to_string(format!("{}users.txt", path))
-        .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
-    contents.lines().map(String::from).collect()
-}
 ///returns false if album shouldn't be considered
 pub fn is_top_and_update_top(
     album: &Album,
