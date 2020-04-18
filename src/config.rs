@@ -1,5 +1,6 @@
 use super::Args;
 use std::fs;
+use std::path::PathBuf;
 use ConfigErr::*;
 
 pub fn load_args() -> Vec<String> {
@@ -28,10 +29,10 @@ pub fn load() -> Args {
                     Some(String::from(value))
                 }
             }
-            "read_path" => args.path_read = String::from(value),
-            "write_path" => args.path_write = String::from(value),
-            "out_path" => args.path_out = String::from(value),
-            "web_path" => args.path_web = String::from(value),
+            "read_path" => args.path_read = PathBuf::from(value),
+            "write_path" => args.path_write = PathBuf::from(value),
+            "out_path" => args.path_out = PathBuf::from(value),
+            "web_path" => args.path_web = PathBuf::from(value),
             _ => panic!("check your config file"),
         }
     }
@@ -55,10 +56,10 @@ impl Args {
             captions: false,
             nick: None,
             web: false,
-            path_read: String::from("./data/"),
-            path_write: String::from("./data/"),
-            path_out: String::from(""),
-            path_web: String::from("./docs/"),
+            path_read: PathBuf::from("./data"),
+            path_write: PathBuf::from("./data"),
+            path_out: PathBuf::from(""),
+            path_web: PathBuf::from("./docs"),
         }
     }
 
@@ -110,14 +111,15 @@ impl Args {
     }
 
     pub fn get_key(&self) -> String {
-        fs::read_to_string(format!("{}key.txt", &self.path_read))
-            .unwrap_or_else(|_| panic!("Something went wrong reading {}key.txt", &self.path_read))
+        let key_path = self.path_read.join("key.txt");
+        fs::read_to_string(&key_path)
+            .unwrap_or_else(|_| panic!("Something went wrong reading {}", &key_path.display()))
     }
 
     pub fn get_spotify_auth(&self) -> (String, String) {
-        let path = format!("{}spotify.json", &self.path_read);
+        let path = self.path_read.join("spotify.json");
         let file_content = fs::read_to_string(&path)
-            .unwrap_or_else(|_| panic!("Something went wrong reading {}", path));
+            .unwrap_or_else(|_| panic!("Something went wrong reading {}", path.display()));
         let json: serde_json::Value = serde_json::from_str(&file_content).unwrap();
         (
             String::from(json["id"].as_str().unwrap()),

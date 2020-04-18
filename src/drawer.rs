@@ -1,4 +1,6 @@
-pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, args: super::Args) {
+use std::path::PathBuf;
+
+pub fn collage(images: Vec<PathBuf>, albums: Vec<&super::Album>, args: super::Args) {
     use image::GenericImage;
 
     let x = args.x;
@@ -15,7 +17,8 @@ pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, args: super::Arg
         }
         img.copy_from(&img2, 300 * (i % x), 300 * (i / x)).unwrap();
     }
-    img.save(format!("{}test.png", args.path_out)).unwrap();
+    img.save(format!("{}test.png", args.path_out.display()))
+        .unwrap();
 }
 
 fn draw_description(

@@ -19,8 +19,10 @@ use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::io::Write;
+use std::path::{Path, PathBuf};
 
 pub mod config;
+pub mod database;
 pub mod drawer;
 pub mod lastfmapi;
 pub mod reader;
@@ -33,10 +35,10 @@ pub struct Args {
     pub captions: bool,
     pub nick: Option<String>,
     pub web: bool,
-    pub path_write: String,
-    pub path_read: String,
-    pub path_out: String,
-    pub path_web: String,
+    pub path_write: PathBuf,
+    pub path_read: PathBuf,
+    pub path_out: PathBuf,
+    pub path_web: PathBuf,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -209,11 +211,11 @@ impl Album {
         )
     }
 
-    pub fn add_to_database(album: &Album, path: &str) -> io::Result<()> {
+    pub fn add_to_database(album: &Album, path: &Path) -> io::Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .append(true)
             .create(true)
-            .open(format!("{}database.txt", path))?;
+            .open(path.join("database.txt"))?;
 
         file.write_all(format!("{}\n", serde_json::to_string(&album)?).as_bytes())?;
 
@@ -230,19 +232,18 @@ impl Album {
         top_some
     }
 
-    pub fn get_images(albums: &[&Album], path: &str) -> Vec<String> {
-        let mut cover_urls: Vec<String> = Vec::new();
+    pub fn get_images(albums: &[&Album], path: &Path) -> Vec<PathBuf> {
+        let mut cover_paths: Vec<PathBuf> = Vec::new();
         let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
-                Some(x) => cover_urls.push(
-                    download_image(&x, path, &client)
-                        .unwrap_or_else(|_| format!("{}blank.png", path)),
+                Some(x) => cover_paths.push(
+                    download_image(&x, path, &client).unwrap_or_else(|_| path.join("blank.png")),
                 ),
-                _ => cover_urls.push(format!("{}blank.png", path)),
+                _ => cover_paths.push(path.join("blank.png")),
             }
         }
-        cover_urls
+        cover_paths
     }
 
     pub fn has_cover(&self) -> bool {
@@ -348,16 +349,16 @@ pub fn albums_to_html(albums: &[&Album]) -> String {
     doc.push_str(include_str!("../data/html_footer"));
     doc
 }
-pub fn save_index_html(s: &str, path: &str) -> io::Result<()> {
-    let mut file = File::create(format!("{}index.html", path))?;
+pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {
+    let mut file = File::create(path.join("index.html"))?;
     file.write_all(s.as_bytes())?;
     Ok(())
 }
 pub fn download_image(
     target: &str,
-    path: &str,
+    path: &Path,
     client: &reqwest::Client,
-) -> Result<String, reqwest::Error> {
+) -> Result<PathBuf, reqwest::Error> {
     let mut response = client.get(target).send()?;
     let result;
 
@@ -368,17 +369,16 @@ pub fn download_image(
             .and_then(|segments| segments.last())
             .and_then(|name| if name.is_empty() { None } else { Some(name) })
             .unwrap_or("tmp.bin");
-        let fname = format!("{}images/{}", path, fname);
-        let fname = fname.as_str();
-        result = String::from(fname);
+        let fname = path.join("images").join(fname);
+        result = PathBuf::from(&fname);
         File::create(fname).unwrap()
     };
     std::io::copy(&mut response, &mut dest).unwrap();
     Ok(result)
 }
 
-pub fn nones_to_file(nones: &[&Album], path: &str) -> io::Result<()> {
-    let mut file = File::create(format!("{}nones.txt", path))?;
+pub fn nones_to_file(nones: &[&Album], path: &Path) -> io::Result<()> {
+    let mut file = File::create(path.join("nones.txt"))?;
     file.write_all(
         nones
             .iter()

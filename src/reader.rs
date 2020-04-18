@@ -69,10 +69,10 @@ pub fn run_get_chart_for_all_users(
     pool
 }
 
-pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
+pub fn load_database(path: &Path) -> io::Result<HashSet<Album>> {
     let mut database: HashSet<Album> = HashSet::with_capacity(15000);
 
-    let content = fs::read_to_string(format!("{}database.txt", path))?;
+    let content = fs::read_to_string(path.join("database.txt"))?;
     for line in content.lines() {
         let album: Album = serde_json::from_str(line)?;
         if !database.insert(album) {
@@ -84,10 +84,10 @@ pub fn load_database(path: &str) -> io::Result<HashSet<Album>> {
 
 pub fn tracks_from_file(
     albums: &mut BTreeSet<Album>,
-    path_out: &str,
-    path_write: &str,
+    path_out: &Path,
+    path_write: &Path,
 ) -> io::Result<()> {
-    let content = fs::read_to_string(format!("{}nones.txt", path_out))?;
+    let content = fs::read_to_string(path_out.join("nones.txt"))?;
     for line in content.lines() {
         let mut words = line.split(';');
         let (artist, title, tracks) = (words.next(), words.next(), words.next());
@@ -110,8 +110,9 @@ pub fn tracks_from_file(
     Ok(())
 }
 
-pub fn get_users(path: &str) -> Vec<String> {
-    let contents = fs::read_to_string(format!("{}users.txt", path))
-        .unwrap_or_else(|_| panic!("Something went wrong reading {}users.txt", path));
+pub fn get_users(path: &std::path::Path) -> Vec<String> {
+    let users_path = path.join("users.txt");
+    let contents = fs::read_to_string(&users_path)
+        .unwrap_or_else(|_| panic!("Something went wrong reading {}", users_path.display()));
     contents.lines().map(String::from).collect()
 }
