@@ -13,7 +13,9 @@ pub fn collage(images: Vec<String>, albums: Vec<&super::Album>, args: super::Arg
         if args.captions {
             draw_description(&mut img2, album.artist(), album.title());
         }
-        img.copy_from(&img2, 300 * (i % x), 300 * (i / x)).unwrap();
+        if let Err(x) = img.copy_from(&img2, 300 * (i % x), 300 * (i / x)) {
+            eprintln!("{} during copying a picture of {}", &x, &album);
+        }
     }
     img.save(format!("{}test.png", args.path_out)).unwrap();
 }
