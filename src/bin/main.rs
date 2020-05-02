@@ -67,13 +67,14 @@ fn main() {
             Some(x) => x,
         };
 
-        let mut user_albums = user_albums
+        let user_albums = user_albums
             .iter()
             .map(|x| lastfmapi::parse_album(x, String::from(user)))
+            .map(|mut x| {
+                x.remove_descriptors_from_name();
+                x
+            })
             .collect::<Vec<Album>>();
-        for album in user_albums.iter_mut() {
-            album.remove_descriptors_from_name();
-        }
         Album::insert(&mut albums, user_albums);
 
         progress += 1;

@@ -1,4 +1,5 @@
 use group_chart::*;
+use std::path::PathBuf;
 
 fn main() {
     let args = config::load_args();
@@ -32,11 +33,18 @@ fn main() {
             db.replace(album).unwrap();
         }
     }
-    database::create_albums_table("LOLZ.sqlite3");
-    let sql_db = database::connect("LOLZ.sqlite3").unwrap();
+    let db_path = PathBuf::from("LOLZ.sqlite3");
+
+    if let Err(x) = database::create_albums_table(&db_path) {
+        eprintln!("{:?}", x);
+    }
+    let sql_db = database::connect(&db_path).unwrap();
 
     for album in db {
         //Album::add_to_database(&album, &format!("{}new_", &args.path_write)).unwrap();
-        database::add(&sql_db, &album).unwrap_or_else(|err| {eprintln!("some error lol {}", err); 0});
+        database::add(&sql_db, &album).unwrap_or_else(|err| {
+            eprintln!("some error lol {}", err);
+            0
+        });
     }
 }
