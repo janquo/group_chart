@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::sync::Arc;
@@ -69,23 +68,10 @@ pub fn run_get_chart_for_all_users(
     pool
 }
 
-pub fn load_database(path: &Path) -> io::Result<HashSet<Album>> {
-    let mut database: HashSet<Album> = HashSet::with_capacity(15000);
-
-    let content = fs::read_to_string(path.join("database.txt"))?;
-    for line in content.lines() {
-        let album: Album = serde_json::from_str(line)?;
-        if !database.insert(album) {
-            eprintln!("record doubled in a database");
-        }
-    }
-    Ok(database)
-}
-
 pub fn tracks_from_file(
     albums: &mut BTreeSet<Album>,
     path_out: &Path,
-    path_write: &Path,
+    db: &Connection,
 ) -> io::Result<()> {
     let content = fs::read_to_string(path_out.join("nones.txt"))?;
     for line in content.lines() {
@@ -104,7 +90,7 @@ pub fn tracks_from_file(
         let mut updated = (*(current.as_ref().unwrap())).clone();
         updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
         updated.compute_score();
-        Album::add_to_database(&updated, path_write)?;
+        database::update_album(&db, &updated).unwrap();
         albums.replace(updated);
     }
     Ok(())

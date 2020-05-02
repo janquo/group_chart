@@ -1,30 +1,31 @@
 use super::Album;
 use rusqlite::{params, Connection};
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn create_albums_table(path: PathBuf) -> rusqlite::Result<()> {
-    let conn = Connection::open(path)?;
-
+pub fn create_albums_table(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute(
-        "CREATE TABLE albums (
-            artist TEXT PRIMARY KEY,
-            title TEXT PRIMARY KEY,
+        "CREATE TABLE IF NOT EXISTS albums (
+            artist TEXT,
+            title TEXT,
             tracks INTEGER,
-            image INTEGER
-        ) IF NOT EXISTS",
+            image INTEGER,
+            CONSTRAINT pk_albums PRIMARY KEY (artist, title)
+        );",
         params![],
     )?;
     Ok(())
 }
 
-pub fn connect(path: PathBuf) -> rusqlite::Result<Connection> {
+pub fn connect(path: &Path) -> rusqlite::Result<Connection> {
     Connection::open(path)
 }
 
-pub fn add(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
+pub fn update_album(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
     conn.execute(
-        "INSERT INTO albums (artist, title, tracks, image)
-            VALUES (?1, ?2, ?3)",
+        "INSERT OR IGNORE INTO albums (artist, title)
+            VALUES (?1, ?2);
+        UPDATE albums SET tracks=?3 AND image=?4
+            WHERE artist=?1 AND title=?2;",
         params![
             album.artist,
             album.title,
@@ -34,5 +35,19 @@ pub fn add(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
     )
 }
 
-#[cfg(test)]
-mod tests {}
+pub fn get_album(conn: &Connection, album: &Album) -> rusqlite::Result<Album> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT tracks, image FROM albums
+                WHERE artist=?1 AND title=?2",
+        )
+        .unwrap();
+
+    stmt.query_row(params![album.artist, album.title], |row| {
+        Ok(Album {
+            tracks: row.get::<usize, Option<i32>>(0)?.map(|x| x as usize),
+            image: row.get(1)?,
+            ..album.clone()
+        })
+    })
+}

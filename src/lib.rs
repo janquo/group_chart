@@ -12,9 +12,10 @@ extern crate threadpool;
 extern crate lazy_static;
 
 use num_rational::Ratio;
+use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use std::collections::{BTreeSet, BinaryHeap, HashSet};
+use std::collections::{BTreeSet, BinaryHeap};
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -96,15 +97,21 @@ impl Album {
 
     pub fn more_info(
         &mut self,
-        database: &HashSet<Album>,
+        db: &Connection,
         key: &str,
         token: &str,
         client: &reqwest::Client,
     ) -> Result<bool, Box<dyn std::error::Error>> {
-        if let Some(album) = database.get(&self) {
-            self.tracks = album.tracks;
-            self.image = album.image.clone();
-            self.compute_score();
+        match database::get_album(&db, &self) {
+            Ok(album) => {
+                self.tracks = album.tracks;
+                self.image = album.image;
+                self.compute_score();
+            }
+            Err(err) => eprintln!(
+                "error occured during reading album from the database: {:?}",
+                err
+            ),
         }
         self.apis_info(key, token, client)
     }
@@ -209,17 +216,6 @@ impl Album {
             self.best_contributor.0,
             self.best_contributor.1,
         )
-    }
-
-    pub fn add_to_database(album: &Album, path: &Path) -> io::Result<()> {
-        let mut file = std::fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(path.join("database.txt"))?;
-
-        file.write_all(format!("{}\n", serde_json::to_string(&album)?).as_bytes())?;
-
-        Ok(())
     }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
         let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();

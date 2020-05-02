@@ -1,7 +1,7 @@
 use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
-use std::collections::{BTreeSet, BinaryHeap, HashSet};
+use std::collections::{BTreeSet, BinaryHeap};
 use std::sync::mpsc;
 use std::sync::Arc;
 
@@ -88,13 +88,16 @@ fn main() {
     let mut top_albums = BTreeSet::new();
     let mut negative_scores_max_heap: BinaryHeap<Ratio<i64>> = BinaryHeap::new();
 
-    let database: HashSet<Album> = match reader::load_database(&args.path_write) {
-        Err(x) => {
-            eprintln!("couldn't read database.txt file with error {}", x);
-            HashSet::with_capacity(0)
+    let db = loop {
+        match database::connect(&args.path_write.join("LOLZ.sqlite3")) {
+            Err(x) => eprintln!("Error while opening database: {}", x),
+            Ok(x) => break x,
         }
-        Ok(x) => x,
     };
+
+    while let Err(x) = database::create_albums_table(&db) {
+        eprintln!("Some error during creation albums database table: {}", x);
+    }
 
     let albums_no = albums.len();
 
@@ -112,10 +115,10 @@ fn main() {
         eprintln!("{}/{}", i, albums_no);
 
         loop {
-            match album.more_info(&database, &key, &token, &client) {
+            match album.more_info(&db, &key, &token, &client) {
                 Ok(x) => {
                     if !x {
-                        if let Err(e) = Album::add_to_database(&album, &args.path_write) {
+                        if let Err(e) = database::update_album(&db, &album) {
                             eprintln!(
                                 "There was an error during appending new record to database: {}",
                                 e
@@ -166,7 +169,7 @@ fn main() {
     println!("update nones file and enter anything to proceed");
     std::io::stdin().read_line(&mut String::new()).unwrap_or(0);
 
-    while reader::tracks_from_file(&mut top_albums, &args.path_out, &args.path_write).is_err() {
+    while reader::tracks_from_file(&mut top_albums, &args.path_out, &db).is_err() {
         eprintln!("error ocurred durring attempt to read scores from file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
