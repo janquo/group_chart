@@ -197,5 +197,9 @@ fn main() {
         }
     }
 
+    if args.save_history {
+        database::create_history_table(&db).unwrap();
+        database::save_results(&db, &top).unwrap();
+    }
     drawer::collage(cover_urls, top, args);
 }

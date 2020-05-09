@@ -16,35 +16,67 @@ pub fn create_albums_table(conn: &Connection) -> rusqlite::Result<()> {
     Ok(())
 }
 
+pub fn create_history_table(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tygodniowa (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            place INTEGER NOT NULL,
+            artist TEXT NOT NULL,
+            title TEXT NOT NULL,
+            scrobbles INTEGER NOT NULL,
+            CONSTRAINT fk_artist_title FOREIGN KEY (artist, title) REFERENCES albums (artist, title)
+        );",
+        params![],
+    )?;
+    Ok(())
+}
+
+pub fn save_results(conn: &Connection, albums: &[&Album]) -> rusqlite::Result<()> {
+    let date = chrono::Local::now().to_rfc3339();
+    let mut stmt = conn.prepare(
+        "INSERT INTO tygodniowa (date, place, artist, title, scrobbles)
+            VALUES (?1,?2,?3,?4,?5);",
+    )?;
+    for (i, album) in albums.iter().enumerate() {
+        stmt.execute(params![
+            date,
+            i as isize,
+            album.artist,
+            album.title,
+            album.playcount
+        ])?;
+    }
+    Ok(())
+}
+
 pub fn connect(path: &Path) -> rusqlite::Result<Connection> {
     Connection::open(path)
 }
 
 pub fn update_album(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
-    conn.execute(
+    let mut stmt = conn.prepare_cached(
         "INSERT OR IGNORE INTO albums (artist, title)
             VALUES (?1, ?2);",
-        params![album.artist, album.title,],
     )?;
-    conn.execute(
+    stmt.execute(params![album.artist, album.title,])?;
+    let mut stmt = conn.prepare_cached(
         "UPDATE albums SET tracks=?1 AND image=?2
             WHERE artist=?3 AND title=?4;",
-        params![
-            album.tracks.map(|x| x as i32),
-            album.image,
-            album.artist,
-            album.title,
-        ],
-    )
+    )?;
+    stmt.execute(params![
+        album.tracks.map(|x| x as i32),
+        album.image,
+        album.artist,
+        album.title,
+    ])
 }
 
 pub fn get_album(conn: &Connection, album: &Album) -> rusqlite::Result<Album> {
-    let mut stmt = conn
-        .prepare(
-            "SELECT tracks, image FROM albums
+    let mut stmt = conn.prepare_cached(
+        "SELECT tracks, image FROM albums
                 WHERE artist=?1 AND title=?2",
-        )
-        .unwrap();
+    )?;
 
     stmt.query_row(params![album.artist, album.title], |row| {
         Ok(Album {

@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate image;
 extern crate imageproc;
 extern crate num_rational;
@@ -40,6 +41,7 @@ pub struct Args {
     pub path_read: PathBuf,
     pub path_out: PathBuf,
     pub path_web: PathBuf,
+    pub save_history: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -108,6 +110,7 @@ impl Album {
                 self.image = album.image;
                 self.compute_score();
             }
+            Err(rusqlite::Error::QueryReturnedNoRows) => (),
             Err(err) => eprintln!(
                 "error occured during reading album from the database: {:?}",
                 err
