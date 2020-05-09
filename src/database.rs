@@ -23,14 +23,17 @@ pub fn connect(path: &Path) -> rusqlite::Result<Connection> {
 pub fn update_album(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
     conn.execute(
         "INSERT OR IGNORE INTO albums (artist, title)
-            VALUES (?1, ?2);
-        UPDATE albums SET tracks=?3 AND image=?4
-            WHERE artist=?1 AND title=?2;",
+            VALUES (?1, ?2);",
+        params![album.artist, album.title,],
+    )?;
+    conn.execute(
+        "UPDATE albums SET tracks=?1 AND image=?2
+            WHERE artist=?3 AND title=?4;",
         params![
+            album.tracks.map(|x| x as i32),
+            album.image,
             album.artist,
             album.title,
-            album.tracks.map(|x| x as i32),
-            album.image
         ],
     )
 }
