@@ -1,0 +1,52 @@
+var colors = ['#007bff', '#28a745', '#333333', '#c3e6cb', '#dc3545', '#6c757d'];
+
+var charts_number = {};
+
+var chartHandles = [];
+var chartSettings = [];
+var chartData = [];
+
+{}
+
+for (i = 0; i < charts_number; i++) {{
+    chartHandles.push(document.getElementById("chart" + i));
+
+    chartSettings.push({{
+        labels: ["S", "M", "T", "W", "T", "F", "S"],
+        datasets: [{{
+            data: chartData[i*2],
+            label: "Scrobbles",
+            backgroundColor: 'transparent',
+            borderColor: colors[0],
+            borderWidth: 4,
+            pointBackgroundColor: colors[0]
+        }},
+        {{
+            data: chartData[i*2+1],
+            label: "position",
+            backgroundColor: colors[3],
+            borderColor: colors[1],
+            borderWidth: 4,
+            pointBackgroundColor: colors[1]
+        }}]
+    }});
+
+    if (chartHandles[i]) {{
+        new Chart(chartHandles[i], {{
+            type: 'line',
+            data: chartSettings[i],
+            options: {{
+                scales: {{
+                    yAxes: [{{
+                        ticks: {{
+                            beginAtZero: false
+                        }}
+                    }}]
+                }},
+                legend: {{
+                    display: false
+                }}
+            }}
+        }});
+    }}
+}}

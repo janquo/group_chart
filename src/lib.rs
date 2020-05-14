@@ -29,6 +29,7 @@ pub mod drawer;
 pub mod lastfmapi;
 pub mod reader;
 pub mod spotifyapi;
+pub mod webpage;
 
 pub struct Args {
     pub x: u32,
@@ -201,25 +202,6 @@ impl Album {
     pub fn to_string_semic(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
     }
-    pub fn to_html_card(&self) -> String {
-        format!(
-            include_str!("../data/html_card"),
-            match &self.image {
-                Some(x) => &x[..],
-                None => "blank.png",
-            },
-            self.artist,
-            self.title,
-            self.playcount,
-            match &self.score {
-                Some(x) => (*x.numer() as f64) / (*x.denom() as f64),
-                None => 0.0,
-            },
-            self.no_contributors,
-            self.best_contributor.0,
-            self.best_contributor.1,
-        )
-    }
     pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
         let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();
         top_none.sort_by_key(|x| -x.playcount);
@@ -340,19 +322,7 @@ pub fn is_top_and_update_top(
         None => true,
     }
 }
-pub fn albums_to_html(albums: &[&Album]) -> String {
-    let mut doc = String::from(include_str!("../data/html_header"));
-    for album in albums {
-        doc.push_str(&album.to_html_card());
-    }
-    doc.push_str(include_str!("../data/html_footer"));
-    doc
-}
-pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {
-    let mut file = File::create(path.join("index.html"))?;
-    file.write_all(s.as_bytes())?;
-    Ok(())
-}
+
 pub fn download_image(
     target: &str,
     path: &Path,
