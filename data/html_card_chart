@@ -8,10 +8,10 @@
           <div class="card-body">
             <div id="{}" class="carousel slide" data-ride="carousel" data-interval=false>
               <div class="carousel-inner">
-                <div class="carousel-item active">
+                <div class="carousel-item">
                   <canvas id="{}"></canvas>
                 </div>
-                <div class="carousel-item">
+                <div class="carousel-item active">
                   <h5 class="card-title">{} - {}</h5>
                   <p class="card-text">Scrobbles: {}</p>
                   <p class="card-text">Score: {:.2}</p>

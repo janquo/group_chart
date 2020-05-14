@@ -206,7 +206,7 @@ fn main() {
             history_data.push(database::get_album_history(&db, album).unwrap());
         }
 
-        let script = webpage::charts_js(&history_data);
+        let script = webpage::charts_js(history_data);
         webpage::save_charts_script(&script, &args.path_web).unwrap();
     }
     drawer::collage(cover_urls, top, args);

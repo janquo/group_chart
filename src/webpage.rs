@@ -65,17 +65,26 @@ pub fn albums_to_html(albums: &[&Album], charts: bool) -> String {
     doc
 }
 
-pub fn charts_js(data: &[Vec<(usize, usize, usize)>]) -> String {
+pub fn charts_js(data: Vec<Vec<(usize, usize, usize)>>) -> String {
+    let n = data.len();
     let mut data_js = String::from("");
-    for row in data {
+    for mut row in data.into_iter() {
+        row.sort_by_key(|x| x.0);
+        let mut i = 1;
+        while i < row.len() {
+            if row[i].0 - 1 > row[i - 1].0 {
+                row.insert(i, (row[i - 1].0 + 1, 50, 0));
+            }
+            i += 1;
+        }
         data_js.push_str(&format!(
-            "chartData.push({:?})\n
+            "chartData.push({:?})
              chartData.push({:?})\n",
             row.iter().map(|v| v.2).collect::<Vec<usize>>(),
             row.iter().map(|v| v.1).collect::<Vec<usize>>()
         ));
     }
-    format!(include_str!("../data/charts_script"), data.len(), data_js)
+    format!(include_str!("../data/charts_script"), n, data_js)
 }
 
 pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {

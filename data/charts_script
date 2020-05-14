@@ -12,22 +12,24 @@ for (i = 0; i < charts_number; i++) {{
     chartHandles.push(document.getElementById("chart" + i));
 
     chartSettings.push({{
-        labels: ["S", "M", "T", "W", "T", "F", "S"],
+        labels: new Array(chartData[i * 2].length).fill(":)"),
         datasets: [{{
-            data: chartData[i*2],
+            data: chartData[i * 2],
             label: "Scrobbles",
+            yAxisID: 'A',
+            borderColor: colors[1],
+            borderWidth: 4,
+            pointBackgroundColor: colors[1],
+            backgroundColor: colors[3],
+        }},
+        {{
+            data: chartData[i * 2 + 1],
             backgroundColor: 'transparent',
+            label: "position",
+            yAxisID: 'B',
             borderColor: colors[0],
             borderWidth: 4,
             pointBackgroundColor: colors[0]
-        }},
-        {{
-            data: chartData[i*2+1],
-            label: "position",
-            backgroundColor: colors[3],
-            borderColor: colors[1],
-            borderWidth: 4,
-            pointBackgroundColor: colors[1]
         }}]
     }});
 
@@ -38,8 +40,20 @@ for (i = 0; i < charts_number; i++) {{
             options: {{
                 scales: {{
                     yAxes: [{{
+                        id: 'A',
+                        type: 'linear',
+                        position: 'left',
                         ticks: {{
-                            beginAtZero: false
+                            precision: 0,
+                        }}
+                    }}, {{
+                        id: 'B',
+                        type: 'linear',
+                        position: 'right',
+                        ticks: {{
+                            max: charts_number,
+                            min: 1,
+                            reverse: true
                         }}
                     }}]
                 }},
