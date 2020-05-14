@@ -1,806 +1,1646 @@
 <!doctype html>
-  <html lang="en">
-  <head>
-      <!-- Required meta tags -->
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-      <!-- Bootstrap CSS -->
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-      <title>#tygodniowa</title>
-  </head>
-  <body>
-  <div class="card-columns">
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/8f2434002c374f44cfe2f4451ed092c5.png">
-          </div>
-          <div class="col-md-8">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+  <title>#tygodniowa</title>
+</head>
+
+<body>
+  <div class="row row-cols-1 row-cols-md-3"><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/9fe1803ee4a244dec46fc6a955cbc1a7.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Lisa Germano - Geek the Girl</h5>
-          <p class="card-text">Scrobbles: 639</p>
-          <p class="card-text">Score: 53.25</p>
-          <p class="card-text">Contributors number: 1</p>
-          <p class="card-text">Top: Mykrzagg - 639 scrobbles</p>
+            <div id="carousel0controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart0"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Talk Talk - Spirit of Eden</h5>
+                  <p class="card-text">Scrobbles: 269</p>
+                  <p class="card-text">Score: 44.83</p>
+                  <p class="card-text">Contributors number: 5</p>
+                  <p class="card-text">Top: xalpol12 - 245 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel0controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel0controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/24590e4ca3a94c748d6c8452ce52467b.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/4f9778b3b327d865ba7bd6387aeeee4d.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">The Doors - The Doors</h5>
-          <p class="card-text">Scrobbles: 534</p>
-          <p class="card-text">Score: 48.55</p>
-          <p class="card-text">Contributors number: 12</p>
-          <p class="card-text">Top: Denirockybe - 477 scrobbles</p>
+            <div id="carousel1controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart1"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Myslovitz - Milosc W Czasach Popkultury</h5>
+                  <p class="card-text">Scrobbles: 491</p>
+                  <p class="card-text">Score: 40.92</p>
+                  <p class="card-text">Contributors number: 38</p>
+                  <p class="card-text">Top: misiax6 - 104 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel1controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel1controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/2ce29f74a6f54b8791e5fdacc2ba36f5.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/7568c8fa48cc4fb6cf688fe89161f8a5.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">The Beatles - Abbey Road</h5>
-          <p class="card-text">Scrobbles: 207</p>
-          <p class="card-text">Score: 34.50</p>
-          <p class="card-text">Contributors number: 13</p>
-          <p class="card-text">Top: fikusoowy - 100 scrobbles</p>
+            <div id="carousel2controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart2"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Sufjan Stevens - Carrie & Lowell</h5>
+                  <p class="card-text">Scrobbles: 412</p>
+                  <p class="card-text">Score: 37.45</p>
+                  <p class="card-text">Contributors number: 8</p>
+                  <p class="card-text">Top: BozioB - 327 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel2controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel2controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/1dbfd75d7b8941edbde5e1b58948f9c4.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/25a4a98297690d84414c6449d2330031.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Death Cab for Cutie - Transatlanticism</h5>
-          <p class="card-text">Scrobbles: 353</p>
-          <p class="card-text">Score: 32.09</p>
-          <p class="card-text">Contributors number: 4</p>
-          <p class="card-text">Top: BozioB - 348 scrobbles</p>
+            <div id="carousel3controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart3"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Odraza - Rzeczom</h5>
+                  <p class="card-text">Scrobbles: 325</p>
+                  <p class="card-text">Score: 32.50</p>
+                  <p class="card-text">Contributors number: 8</p>
+                  <p class="card-text">Top: Uglyboi1488 - 109 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel3controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel3controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/02ab68846ffe40c899349abbfa11d7e3.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/ae19a7d96448989089792867095dd321.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Neutral Milk Hotel - In the Aeroplane Over the Sea</h5>
-          <p class="card-text">Scrobbles: 324</p>
-          <p class="card-text">Score: 29.45</p>
-          <p class="card-text">Contributors number: 19</p>
-          <p class="card-text">Top: pitereq01 - 100 scrobbles</p>
+            <div id="carousel4controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart4"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Panchiko - D>E>A>T>H>M>E>T>A>L</h5>
+                  <p class="card-text">Scrobbles: 128</p>
+                  <p class="card-text">Score: 32.00</p>
+                  <p class="card-text">Contributors number: 5</p>
+                  <p class="card-text">Top: ladamebleue - 101 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel4controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel4controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/4f9778b3b327d865ba7bd6387aeeee4d.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/503c5d0e7e96708e9c99f17e797bf65f.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Myslovitz - Milosc W Czasach Popkultury</h5>
-          <p class="card-text">Scrobbles: 341</p>
-          <p class="card-text">Score: 28.42</p>
-          <p class="card-text">Contributors number: 37</p>
-          <p class="card-text">Top: Acemacowy - 46 scrobbles</p>
+            <div id="carousel5controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart5"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">New Order - Power corruption and lies</h5>
+                  <p class="card-text">Scrobbles: 239</p>
+                  <p class="card-text">Score: 29.88</p>
+                  <p class="card-text">Contributors number: 10</p>
+                  <p class="card-text">Top: xalpol12 - 111 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel5controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel5controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/4799c47d3d50166b95527a05892de87c.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/8d91b7dd13084606b99d756175917f7d.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Drake - Dark Lane Demo Tapes</h5>
-          <p class="card-text">Scrobbles: 343</p>
-          <p class="card-text">Score: 24.50</p>
-          <p class="card-text">Contributors number: 22</p>
-          <p class="card-text">Top: johnnyzurek31 - 122 scrobbles</p>
+            <div id="carousel6controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart6"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Radiohead - In Rainbows</h5>
+                  <p class="card-text">Scrobbles: 283</p>
+                  <p class="card-text">Score: 28.30</p>
+                  <p class="card-text">Contributors number: 23</p>
+                  <p class="card-text">Top: b_barbara - 118 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel6controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel6controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/8d91b7dd13084606b99d756175917f7d.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/3ed4f5f963cd5868f1f8f96cb42471dc.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Radiohead - In Rainbows</h5>
-          <p class="card-text">Scrobbles: 238</p>
-          <p class="card-text">Score: 23.80</p>
-          <p class="card-text">Contributors number: 24</p>
-          <p class="card-text">Top: b_barbara - 60 scrobbles</p>
+            <div id="carousel7controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart7"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Myslovitz - Miłość w czasach popkultury</h5>
+                  <p class="card-text">Scrobbles: 315</p>
+                  <p class="card-text">Score: 26.25</p>
+                  <p class="card-text">Contributors number: 28</p>
+                  <p class="card-text">Top: xeonheat - 64 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel7controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel7controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/98852724fd97f5bb90b681f0af0e64cf.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/848fe4cf9544422d84b5948f05d9dea6.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Swans - The Great Annihilator</h5>
-          <p class="card-text">Scrobbles: 395</p>
-          <p class="card-text">Score: 23.24</p>
-          <p class="card-text">Contributors number: 4</p>
-          <p class="card-text">Top: hnikiel - 303 scrobbles</p>
+            <div id="carousel8controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart8"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Elliott Smith - Either/Or</h5>
+                  <p class="card-text">Scrobbles: 283</p>
+                  <p class="card-text">Score: 23.58</p>
+                  <p class="card-text">Contributors number: 8</p>
+                  <p class="card-text">Top: xalpol12 - 250 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel8controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel8controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/5d53d7e6aad2f08c464e301d3bab6e96.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/141fd517ba5d40838d21f82bb9b26149.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Cigarettes After Sex - Cigarettes After Sex</h5>
-          <p class="card-text">Scrobbles: 220</p>
-          <p class="card-text">Score: 22.00</p>
-          <p class="card-text">Contributors number: 9</p>
-          <p class="card-text">Top: BozioB - 201 scrobbles</p>
+            <div id="carousel9controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart9"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Talking Heads - Speaking In Tongues</h5>
+                  <p class="card-text">Scrobbles: 240</p>
+                  <p class="card-text">Score: 21.82</p>
+                  <p class="card-text">Contributors number: 6</p>
+                  <p class="card-text">Top: xalpol12 - 227 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel9controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel9controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/ee2a3ca4bbb25f3c9ea0e36a82d0afa3.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/5e026fefaa2c41da988bbfb17325ee04.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">LSD and the Search for God - LSD and the Search For God</h5>
-          <p class="card-text">Scrobbles: 107</p>
-          <p class="card-text">Score: 21.40</p>
-          <p class="card-text">Contributors number: 8</p>
-          <p class="card-text">Top: Nollieheelflip - 62 scrobbles</p>
+            <div id="carousel10controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart10"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">The Cure - Disintegration</h5>
+                  <p class="card-text">Scrobbles: 259</p>
+                  <p class="card-text">Score: 21.58</p>
+                  <p class="card-text">Contributors number: 23</p>
+                  <p class="card-text">Top: BozioB - 96 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel10controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel10controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/9fdd418ba6fd62e17f2c74ec9dbe0b04.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/02ab68846ffe40c899349abbfa11d7e3.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">BIESY - Transsatanizm</h5>
-          <p class="card-text">Scrobbles: 148</p>
-          <p class="card-text">Score: 21.14</p>
-          <p class="card-text">Contributors number: 6</p>
-          <p class="card-text">Top: Uglyboi1488 - 64 scrobbles</p>
+            <div id="carousel11controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart11"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Neutral Milk Hotel - In the Aeroplane Over the Sea</h5>
+                  <p class="card-text">Scrobbles: 227</p>
+                  <p class="card-text">Score: 20.64</p>
+                  <p class="card-text">Contributors number: 16</p>
+                  <p class="card-text">Top: Mightmatt - 84 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel11controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel11controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/b28c26e096e80138442bdfa520f9620f.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/d4a018710d15b787803d993cc1f0e3ff.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Car Seat Headrest - Making A Door Less Open</h5>
-          <p class="card-text">Scrobbles: 231</p>
-          <p class="card-text">Score: 21.00</p>
-          <p class="card-text">Contributors number: 14</p>
-          <p class="card-text">Top: pitereq01 - 56 scrobbles</p>
+            <div id="carousel12controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart12"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">deathfromoverdose - Digi Deth</h5>
+                  <p class="card-text">Scrobbles: 272</p>
+                  <p class="card-text">Score: 19.43</p>
+                  <p class="card-text">Contributors number: 2</p>
+                  <p class="card-text">Top: Ginger230 - 271 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel12controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel12controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/7019a1ce194702b35dfbe2b706c39393.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/baafa02626d54475c412e80c6b121193.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Tyler, the Creator - IGOR</h5>
-          <p class="card-text">Scrobbles: 246</p>
-          <p class="card-text">Score: 20.50</p>
-          <p class="card-text">Contributors number: 27</p>
-          <p class="card-text">Top: maroalvaro_ - 46 scrobbles</p>
+            <div id="carousel13controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart13"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Pixies - Doolittle</h5>
+                  <p class="card-text">Scrobbles: 290</p>
+                  <p class="card-text">Score: 19.33</p>
+                  <p class="card-text">Contributors number: 15</p>
+                  <p class="card-text">Top: BozioB - 206 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel13controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel13controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/ea10e61df18b18d8a0c0de94335d1d7a.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/f6f67f5cf0a0b732834ad8e95d3e6796.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Lorde - Melodrama</h5>
-          <p class="card-text">Scrobbles: 225</p>
-          <p class="card-text">Score: 20.45</p>
-          <p class="card-text">Contributors number: 18</p>
-          <p class="card-text">Top: q3yo - 117 scrobbles</p>
+            <div id="carousel14controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart14"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">schafter - audiotele</h5>
+                  <p class="card-text">Scrobbles: 135</p>
+                  <p class="card-text">Score: 19.29</p>
+                  <p class="card-text">Contributors number: 16</p>
+                  <p class="card-text">Top: jaayski - 66 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel14controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel14controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/55292eb15e7e442a9f40f09625d6e111.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/bdb6862edf29314e9a3c3d20f022abf1.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Interpol - Turn on the Bright Lights</h5>
-          <p class="card-text">Scrobbles: 203</p>
-          <p class="card-text">Score: 18.45</p>
-          <p class="card-text">Contributors number: 14</p>
-          <p class="card-text">Top: BozioB - 128 scrobbles</p>
+            <div id="carousel15controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart15"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Sorry Boys - Miłość</h5>
+                  <p class="card-text">Scrobbles: 206</p>
+                  <p class="card-text">Score: 18.73</p>
+                  <p class="card-text">Contributors number: 2</p>
+                  <p class="card-text">Top: misiax6 - 205 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel15controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel15controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/76ce066e3dd48b6aae77e27227088aa9.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/0c6c868b77a4417f937cf09506099081.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Fiona Apple - Fetch the Bolt Cutters</h5>
-          <p class="card-text">Scrobbles: 230</p>
-          <p class="card-text">Score: 17.69</p>
-          <p class="card-text">Contributors number: 18</p>
-          <p class="card-text">Top: maroalvaro_ - 60 scrobbles</p>
+            <div id="carousel16controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart16"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Joy Division - Unknown Pleasures</h5>
+                  <p class="card-text">Scrobbles: 187</p>
+                  <p class="card-text">Score: 18.70</p>
+                  <p class="card-text">Contributors number: 27</p>
+                  <p class="card-text">Top: Cosiarken  - 99 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel16controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel16controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/47fbcfb5c9e84a0fb59854dfd55439e6.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/70a37398d43a393298f7cc5410b1af03.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Kate Bush - Hounds of Love</h5>
-          <p class="card-text">Scrobbles: 210</p>
-          <p class="card-text">Score: 17.50</p>
-          <p class="card-text">Contributors number: 11</p>
-          <p class="card-text">Top: xalpol12 - 173 scrobbles</p>
+            <div id="carousel17controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart17"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Frank Ocean - Blonde</h5>
+                  <p class="card-text">Scrobbles: 305</p>
+                  <p class="card-text">Score: 17.94</p>
+                  <p class="card-text">Contributors number: 22</p>
+                  <p class="card-text">Top: b_barbara - 164 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel17controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel17controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/0c6c868b77a4417f937cf09506099081.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/76ce066e3dd48b6aae77e27227088aa9.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Joy Division - Unknown Pleasures</h5>
-          <p class="card-text">Scrobbles: 171</p>
-          <p class="card-text">Score: 17.10</p>
-          <p class="card-text">Contributors number: 31</p>
-          <p class="card-text">Top: wiktorsss - 29 scrobbles</p>
+            <div id="carousel18controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart18"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Fiona Apple - Fetch the Bolt Cutters</h5>
+                  <p class="card-text">Scrobbles: 233</p>
+                  <p class="card-text">Score: 17.92</p>
+                  <p class="card-text">Contributors number: 15</p>
+                  <p class="card-text">Top: b_barbara - 134 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel18controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel18controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/141fd517ba5d40838d21f82bb9b26149.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/9fdd418ba6fd62e17f2c74ec9dbe0b04.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Talking Heads - Speaking In Tongues</h5>
-          <p class="card-text">Scrobbles: 186</p>
-          <p class="card-text">Score: 16.91</p>
-          <p class="card-text">Contributors number: 6</p>
-          <p class="card-text">Top: xalpol12 - 163 scrobbles</p>
+            <div id="carousel19controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart19"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">BIESY - Transsatanizm</h5>
+                  <p class="card-text">Scrobbles: 119</p>
+                  <p class="card-text">Score: 17.00</p>
+                  <p class="card-text">Contributors number: 11</p>
+                  <p class="card-text">Top: Radeq2137 - 22 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel19controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel19controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/4834c1de5bae49f594bd2f2df1f16286.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/14b6a34c850d1d50bc56ede13a0284bb.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">The White Stripes - Elephant</h5>
-          <p class="card-text">Scrobbles: 228</p>
-          <p class="card-text">Score: 16.29</p>
-          <p class="card-text">Contributors number: 7</p>
-          <p class="card-text">Top: misiax6 - 207 scrobbles</p>
+            <div id="carousel20controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart20"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Standing On The Corner - Red Burns</h5>
+                  <p class="card-text">Scrobbles: 32</p>
+                  <p class="card-text">Score: 16.00</p>
+                  <p class="card-text">Contributors number: 1</p>
+                  <p class="card-text">Top: Jakub_Szwedo - 32 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel20controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel20controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/71cc320aa75906f6e4760aaaeb96b845.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/a39f5450fa527deef305cc3fe7340ff2.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Nirvana - Nevermind</h5>
-          <p class="card-text">Scrobbles: 192</p>
-          <p class="card-text">Score: 16.00</p>
-          <p class="card-text">Contributors number: 24</p>
-          <p class="card-text">Top: mlody_dvd - 70 scrobbles</p>
+            <div id="carousel21controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart21"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Quebonafide - Romantic Psycho</h5>
+                  <p class="card-text">Scrobbles: 254</p>
+                  <p class="card-text">Score: 15.88</p>
+                  <p class="card-text">Contributors number: 27</p>
+                  <p class="card-text">Top: Belfer_ - 33 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel21controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel21controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/224563f32b730a8fe9ac9b57235dfd41.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/f579e414e20f40969185e41182d72472.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Taco Hemingway - Marmur</h5>
-          <p class="card-text">Scrobbles: 270</p>
-          <p class="card-text">Score: 15.88</p>
-          <p class="card-text">Contributors number: 17</p>
-          <p class="card-text">Top: Krozzzik - 96 scrobbles</p>
+            <div id="carousel22controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart22"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Arctic Monkeys - AM</h5>
+                  <p class="card-text">Scrobbles: 190</p>
+                  <p class="card-text">Score: 15.83</p>
+                  <p class="card-text">Contributors number: 16</p>
+                  <p class="card-text">Top: misiax6 - 161 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel22controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel22controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/fe661cb0dbde47ac8c70d50ed6624820.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/3fbb1332d6ee4a70ca6377ef90a0b5e6.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Red House Painters - Ocean Beach</h5>
-          <p class="card-text">Scrobbles: 142</p>
-          <p class="card-text">Score: 15.78</p>
-          <p class="card-text">Contributors number: 1</p>
-          <p class="card-text">Top: Mykrzagg - 142 scrobbles</p>
+            <div id="carousel23controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart23"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Taco Hemingway - Trójkąt warszawski</h5>
+                  <p class="card-text">Scrobbles: 109</p>
+                  <p class="card-text">Score: 15.57</p>
+                  <p class="card-text">Contributors number: 13</p>
+                  <p class="card-text">Top: Pieszolty - 72 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel23controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel23controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/f6fc0fa1c054d47ecf17e01f6ca44c1d.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://upload.wikimedia.org/wikipedia/en/2/2d/TalkingHeadsRemaininLight.jpg">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Vader - Solitude In Madness</h5>
-          <p class="card-text">Scrobbles: 171</p>
-          <p class="card-text">Score: 15.55</p>
-          <p class="card-text">Contributors number: 4</p>
-          <p class="card-text">Top: yasukuuchan - 91 scrobbles</p>
+            <div id="carousel24controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart24"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Talking Heads - Remain In Light</h5>
+                  <p class="card-text">Scrobbles: 184</p>
+                  <p class="card-text">Score: 15.33</p>
+                  <p class="card-text">Contributors number: 14</p>
+                  <p class="card-text">Top: jakubkwiat00 - 113 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel24controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel24controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/248cb85037351002251836e5f2f0d76b.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/628249f702a152cd376fb47ba4f5a3da.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Radiohead - Kid A</h5>
-          <p class="card-text">Scrobbles: 153</p>
-          <p class="card-text">Score: 15.30</p>
-          <p class="card-text">Contributors number: 22</p>
-          <p class="card-text">Top: ladamebleue - 35 scrobbles</p>
+            <div id="carousel25controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart25"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Flo Morrissey - Tomorrow Will Be Beautiful</h5>
+                  <p class="card-text">Scrobbles: 153</p>
+                  <p class="card-text">Score: 15.30</p>
+                  <p class="card-text">Contributors number: 1</p>
+                  <p class="card-text">Top: BozioB - 153 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel25controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel25controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/f38efc18b60fdbc896e4f4efa7d46510.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/6e895f0b4349ffcd1b0179d7537a46c8.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Sufjan Stevens - Michigan</h5>
-          <p class="card-text">Scrobbles: 228</p>
-          <p class="card-text">Score: 15.20</p>
-          <p class="card-text">Contributors number: 2</p>
-          <p class="card-text">Top: xalpol12 - 212 scrobbles</p>
+            <div id="carousel26controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart26"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Taco Hemingway - Café Belga</h5>
+                  <p class="card-text">Scrobbles: 168</p>
+                  <p class="card-text">Score: 15.27</p>
+                  <p class="card-text">Contributors number: 17</p>
+                  <p class="card-text">Top: Pieszolty - 103 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel26controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel26controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/9b2822cf9f5d457388fe3a40fcaeca31.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://upload.wikimedia.org/wikipedia/en/0/0b/Astroworld_by_Travis_Scott.jpg">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Mazzy Star - Among My Swan</h5>
-          <p class="card-text">Scrobbles: 179</p>
-          <p class="card-text">Score: 14.92</p>
-          <p class="card-text">Contributors number: 4</p>
-          <p class="card-text">Top: BozioB - 176 scrobbles</p>
+            <div id="carousel27controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart27"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Travis Scott - ASTROWORLD</h5>
+                  <p class="card-text">Scrobbles: 256</p>
+                  <p class="card-text">Score: 15.06</p>
+                  <p class="card-text">Contributors number: 15</p>
+                  <p class="card-text">Top: Pieszolty - 80 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel27controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel27controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/e9dd5c8d3294ca0a0f58cbf7ad5fd6a6.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/55292eb15e7e442a9f40f09625d6e111.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Kids See Ghosts - Kids See Ghosts</h5>
-          <p class="card-text">Scrobbles: 101</p>
-          <p class="card-text">Score: 14.43</p>
-          <p class="card-text">Contributors number: 15</p>
-          <p class="card-text">Top: skurwacek - 20 scrobbles</p>
+            <div id="carousel28controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart28"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Interpol - Turn on the Bright Lights</h5>
+                  <p class="card-text">Scrobbles: 162</p>
+                  <p class="card-text">Score: 14.73</p>
+                  <p class="card-text">Contributors number: 10</p>
+                  <p class="card-text">Top: BozioB - 139 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel28controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel28controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/9344e9c24a21f641c1ed2e6a9d6afef9.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/6316d126bc6d544fb61bfaf921518264.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Ghost - Prequelle</h5>
-          <p class="card-text">Scrobbles: 144</p>
-          <p class="card-text">Score: 14.40</p>
-          <p class="card-text">Contributors number: 4</p>
-          <p class="card-text">Top: Jane147 - 134 scrobbles</p>
+            <div id="carousel29controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart29"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Depeche Mode - Songs Of Faith And Devotion</h5>
+                  <p class="card-text">Scrobbles: 265</p>
+                  <p class="card-text">Score: 14.72</p>
+                  <p class="card-text">Contributors number: 3</p>
+                  <p class="card-text">Top: Gond414 - 262 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel29controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel29controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/70a37398d43a393298f7cc5410b1af03.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/4884fbb2a3714e42cef5a1782e10c26e.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Frank Ocean - Blonde</h5>
-          <p class="card-text">Scrobbles: 239</p>
-          <p class="card-text">Score: 14.06</p>
-          <p class="card-text">Contributors number: 26</p>
-          <p class="card-text">Top: b_barbara - 98 scrobbles</p>
+            <div id="carousel30controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart30"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Sufjan Stevens - Illinois</h5>
+                  <p class="card-text">Scrobbles: 323</p>
+                  <p class="card-text">Score: 14.68</p>
+                  <p class="card-text">Contributors number: 4</p>
+                  <p class="card-text">Top: xalpol12 - 246 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel30controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel30controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/ad656836a06e4267858d105ddd13fe04.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/400560416eb0c37bbc407cd4279c7899.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Nick Drake - Bryter Layter</h5>
-          <p class="card-text">Scrobbles: 140</p>
-          <p class="card-text">Score: 14.00</p>
-          <p class="card-text">Contributors number: 1</p>
-          <p class="card-text">Top: Mykrzagg - 140 scrobbles</p>
+            <div id="carousel31controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart31"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Bladee - EXETER</h5>
+                  <p class="card-text">Scrobbles: 128</p>
+                  <p class="card-text">Score: 14.22</p>
+                  <p class="card-text">Contributors number: 4</p>
+                  <p class="card-text">Top: jakubkwiat00 - 111 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel31controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel31controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/51709580b4f14898c8896b5049b168d1.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/71cc320aa75906f6e4760aaaeb96b845.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Joy Division - Closer</h5>
-          <p class="card-text">Scrobbles: 126</p>
-          <p class="card-text">Score: 14.00</p>
-          <p class="card-text">Contributors number: 17</p>
-          <p class="card-text">Top: melatonin-a - 46 scrobbles</p>
+            <div id="carousel32controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart32"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Nirvana - Nevermind</h5>
+                  <p class="card-text">Scrobbles: 162</p>
+                  <p class="card-text">Score: 13.50</p>
+                  <p class="card-text">Contributors number: 22</p>
+                  <p class="card-text">Top: mlody_dvd - 41 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel32controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel32controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/62e79d7331b34ea9ced494570a2fe797.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/49ba2ddfb68c433d8eb9ddbb71153c12.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">LCD Soundsystem - Sound Of Silver</h5>
-          <p class="card-text">Scrobbles: 126</p>
-          <p class="card-text">Score: 14.00</p>
-          <p class="card-text">Contributors number: 5</p>
-          <p class="card-text">Top: xalpol12 - 80 scrobbles</p>
+            <div id="carousel33controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart33"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Elliott Smith - XO</h5>
+                  <p class="card-text">Scrobbles: 186</p>
+                  <p class="card-text">Score: 13.29</p>
+                  <p class="card-text">Contributors number: 2</p>
+                  <p class="card-text">Top: xalpol12 - 185 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel33controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel33controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/fe2362c4fa990ffa1d57a95e1a446ac3.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/700d2eb3e5514a36ca30637477d007bd.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Joji - BALLADS 1</h5>
-          <p class="card-text">Scrobbles: 152</p>
-          <p class="card-text">Score: 13.82</p>
-          <p class="card-text">Contributors number: 10</p>
-          <p class="card-text">Top: maroalvaro_ - 57 scrobbles</p>
+            <div id="carousel34controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart34"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Aimer - After Dark</h5>
+                  <p class="card-text">Scrobbles: 159</p>
+                  <p class="card-text">Score: 13.25</p>
+                  <p class="card-text">Contributors number: 1</p>
+                  <p class="card-text">Top: BozioB - 159 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel34controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel34controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/503c5d0e7e96708e9c99f17e797bf65f.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/6e7ad7809952622e15275e59b875e866.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">New Order - Power corruption and lies</h5>
-          <p class="card-text">Scrobbles: 109</p>
-          <p class="card-text">Score: 13.62</p>
-          <p class="card-text">Contributors number: 16</p>
-          <p class="card-text">Top: wiktorsss - 33 scrobbles</p>
+            <div id="carousel35controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart35"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Dua Lipa - Future Nostalgia</h5>
+                  <p class="card-text">Scrobbles: 144</p>
+                  <p class="card-text">Score: 13.09</p>
+                  <p class="card-text">Contributors number: 19</p>
+                  <p class="card-text">Top: hnikiel - 23 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel35controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel35controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/7a6fe81e491bc357bdee2a0bb4e17a27.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/a0794c803481a31986f2c7cc0eb34030.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Coals - docusoap</h5>
-          <p class="card-text">Scrobbles: 163</p>
-          <p class="card-text">Score: 13.58</p>
-          <p class="card-text">Contributors number: 7</p>
-          <p class="card-text">Top: czarnykwadrat - 86 scrobbles</p>
+            <div id="carousel36controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart36"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Taco Hemingway - Pocztówka z WWA, lato '19</h5>
+                  <p class="card-text">Scrobbles: 143</p>
+                  <p class="card-text">Score: 13.00</p>
+                  <p class="card-text">Contributors number: 22</p>
+                  <p class="card-text">Top: ngrygier - 29 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel36controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel36controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/53442bc27a314142a02d2df018b4161e.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/394cfbc6b2a74766a4364778c641ca51.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">The Smiths - The Queen Is Dead</h5>
-          <p class="card-text">Scrobbles: 134</p>
-          <p class="card-text">Score: 13.40</p>
-          <p class="card-text">Contributors number: 33</p>
-          <p class="card-text">Top: xdies5 - 20 scrobbles</p>
+            <div id="carousel37controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart37"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Pink Floyd - Wish You Were Here</h5>
+                  <p class="card-text">Scrobbles: 65</p>
+                  <p class="card-text">Score: 13.00</p>
+                  <p class="card-text">Contributors number: 16</p>
+                  <p class="card-text">Top: Szczupacke - 19 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel37controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel37controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/baafa02626d54475c412e80c6b121193.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/92ee7e4f3afdbe6a9a8c13a4a790baf1.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Pixies - Doolittle</h5>
-          <p class="card-text">Scrobbles: 197</p>
-          <p class="card-text">Score: 13.13</p>
-          <p class="card-text">Contributors number: 19</p>
-          <p class="card-text">Top: BozioB - 118 scrobbles</p>
+            <div id="carousel38controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart38"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Beach House - Depression Cherry</h5>
+                  <p class="card-text">Scrobbles: 116</p>
+                  <p class="card-text">Score: 12.89</p>
+                  <p class="card-text">Contributors number: 13</p>
+                  <p class="card-text">Top: BozioB - 74 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel38controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel38controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/62d26c6cb4ac4bdccb8f3a2a0fd55421.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/7019a1ce194702b35dfbe2b706c39393.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Radiohead - OK Computer</h5>
-          <p class="card-text">Scrobbles: 157</p>
-          <p class="card-text">Score: 13.08</p>
-          <p class="card-text">Contributors number: 34</p>
-          <p class="card-text">Top: wiktorsss - 34 scrobbles</p>
+            <div id="carousel39controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart39"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Tyler, the Creator - IGOR</h5>
+                  <p class="card-text">Scrobbles: 148</p>
+                  <p class="card-text">Score: 12.33</p>
+                  <p class="card-text">Contributors number: 24</p>
+                  <p class="card-text">Top: p0ka1 - 40 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel39controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel39controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/1dbfd75d7b8941edbde5e1b58948f9c4.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Pink Floyd - The Dark Side Of The Moon</h5>
-          <p class="card-text">Scrobbles: 129</p>
-          <p class="card-text">Score: 12.90</p>
-          <p class="card-text">Contributors number: 16</p>
-          <p class="card-text">Top: Szczupacke - 33 scrobbles</p>
+            <div id="carousel40controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart40"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Death Cab for Cutie - Transatlanticism</h5>
+                  <p class="card-text">Scrobbles: 134</p>
+                  <p class="card-text">Score: 12.18</p>
+                  <p class="card-text">Contributors number: 3</p>
+                  <p class="card-text">Top: BozioB - 132 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel40controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel40controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/2006826dea5289d07ea7a215040949af.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/98852724fd97f5bb90b681f0af0e64cf.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Łona i Webber - Śpiewnik Domowy</h5>
-          <p class="card-text">Scrobbles: 103</p>
-          <p class="card-text">Score: 12.88</p>
-          <p class="card-text">Contributors number: 9</p>
-          <p class="card-text">Top: bubrov - 70 scrobbles</p>
+            <div id="carousel41controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart41"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Swans - The Great Annihilator</h5>
+                  <p class="card-text">Scrobbles: 201</p>
+                  <p class="card-text">Score: 11.82</p>
+                  <p class="card-text">Contributors number: 3</p>
+                  <p class="card-text">Top: hnikiel - 156 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel41controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel41controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/91cc8dccc7d74263c48e5f720f238a25.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/ffa4b62f75a006700b0a3ffdd37ed237.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Łona i Webber - Nawiasem Mówiąc</h5>
-          <p class="card-text">Scrobbles: 174</p>
-          <p class="card-text">Score: 12.43</p>
-          <p class="card-text">Contributors number: 9</p>
-          <p class="card-text">Top: ag4wa - 93 scrobbles</p>
+            <div id="carousel42controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart42"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Taco Hemingway - WOSK</h5>
+                  <p class="card-text">Scrobbles: 70</p>
+                  <p class="card-text">Score: 11.67</p>
+                  <p class="card-text">Contributors number: 12</p>
+                  <p class="card-text">Top: Pieszolty - 46 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel42controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel42controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/2dd3d0f666fc1c7aba0cd7e17e95a5ed.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/dcf7ccf93e1c445583ff952f49eb7a5d.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Slint - Spiderland</h5>
-          <p class="card-text">Scrobbles: 73</p>
-          <p class="card-text">Score: 12.17</p>
-          <p class="card-text">Contributors number: 13</p>
-          <p class="card-text">Top: hnikiel - 28 scrobbles</p>
+            <div id="carousel43controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart43"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">The Cure - Pornography</h5>
+                  <p class="card-text">Scrobbles: 91</p>
+                  <p class="card-text">Score: 11.38</p>
+                  <p class="card-text">Contributors number: 2</p>
+                  <p class="card-text">Top: xeonheat - 90 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel43controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel43controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://upload.wikimedia.org/wikipedia/en/0/0b/Astroworld_by_Travis_Scott.jpg">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/179632050e1043dbc3794adbd2eed99c.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Travis Scott - ASTROWORLD</h5>
-          <p class="card-text">Scrobbles: 201</p>
-          <p class="card-text">Score: 11.82</p>
-          <p class="card-text">Contributors number: 18</p>
-          <p class="card-text">Top: Pieszolty - 80 scrobbles</p>
+            <div id="carousel44controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart44"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Odraza - Esperalem Tkane</h5>
+                  <p class="card-text">Scrobbles: 79</p>
+                  <p class="card-text">Score: 11.29</p>
+                  <p class="card-text">Contributors number: 8</p>
+                  <p class="card-text">Top: TheGodThatFaile - 19 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel44controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel44controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/d846018799b00bb992fb75d2995955f4.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/b66c572f7d89374dd746d7b02fc324b5.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Nick Drake - Five Leaves Left</h5>
-          <p class="card-text">Scrobbles: 118</p>
-          <p class="card-text">Score: 11.80</p>
-          <p class="card-text">Contributors number: 3</p>
-          <p class="card-text">Top: Mykrzagg - 115 scrobbles</p>
+            <div id="carousel45controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart45"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Lana Del Rey - Norman Fucking Rockwell!</h5>
+                  <p class="card-text">Scrobbles: 158</p>
+                  <p class="card-text">Score: 11.29</p>
+                  <p class="card-text">Contributors number: 13</p>
+                  <p class="card-text">Top: shch1337 - 42 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel45controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel45controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/c8345296e6484c76b15a55df964ed50a.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/bda4486b4ae94bdebe078d0dd226a6e2.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Leprous - Coal</h5>
-          <p class="card-text">Scrobbles: 94</p>
-          <p class="card-text">Score: 11.75</p>
-          <p class="card-text">Contributors number: 1</p>
-          <p class="card-text">Top: Jane147 - 94 scrobbles</p>
+            <div id="carousel46controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart46"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Low - The Curtain Hits The Cast</h5>
+                  <p class="card-text">Scrobbles: 135</p>
+                  <p class="card-text">Score: 11.25</p>
+                  <p class="card-text">Contributors number: 1</p>
+                  <p class="card-text">Top: Mykrzagg - 135 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel46controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel46controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm.freetls.fastly.net/i/u/300x300/e4b1d77c940dce4e7552ce7bf27f6ab2.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm.freetls.fastly.net/i/u/300x300/350ba585db9946829216cb0718957e23.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">相対性理論 - ハイファイ新書</h5>
-          <p class="card-text">Scrobbles: 103</p>
-          <p class="card-text">Score: 11.44</p>
-          <p class="card-text">Contributors number: 1</p>
-          <p class="card-text">Top: pitereq01 - 103 scrobbles</p>
+            <div id="carousel47controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart47"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">My Bloody Valentine - You Made Me Realise</h5>
+                  <p class="card-text">Scrobbles: 56</p>
+                  <p class="card-text">Score: 11.20</p>
+                  <p class="card-text">Contributors number: 1</p>
+                  <p class="card-text">Top: xalpol12 - 56 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel47controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel47controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-<div class="card mb-3">
-          <div class="row no-gutters">
-          <div class="col-md-4">
-          <img alt="alt" class="card-img" src="https://lastfm-img2.akamaized.net/i/u/300x300/3fbb1332d6ee4a70ca6377ef90a0b5e6.png">
-          </div>
-          <div class="col-md-8">
+        </div>
+      </div>
+    </div><div class="card mb-3">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img alt="alt" class="card-img"
+            src="https://lastfm-img2.akamaized.net/i/u/300x300/e9dd5c8d3294ca0a0f58cbf7ad5fd6a6.png">
+        </div>
+        <div class="col-md-8">
           <div class="card-body">
-          <h5 class="card-title">Taco Hemingway - Trójkąt warszawski</h5>
-          <p class="card-text">Scrobbles: 80</p>
-          <p class="card-text">Score: 11.43</p>
-          <p class="card-text">Contributors number: 18</p>
-          <p class="card-text">Top: Mightmatt - 32 scrobbles</p>
+            <div id="carousel48controls" class="carousel slide" data-ride="carousel" data-interval=false>
+              <div class="carousel-inner">
+                <div class="carousel-item">
+                  <canvas id="chart48"></canvas>
+                </div>
+                <div class="carousel-item active">
+                  <h5 class="card-title">Kids See Ghosts - Kids See Ghosts</h5>
+                  <p class="card-text">Scrobbles: 77</p>
+                  <p class="card-text">Score: 11.00</p>
+                  <p class="card-text">Contributors number: 18</p>
+                  <p class="card-text">Top: BrudnaM00za - 15 scrobbles</p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" href="#carousel48controls" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carousel48controls" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-          </div>
-          </div>
-          </div>
-</div>
-  <!-- Optional JavaScript -->
-  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-  <script crossorigin="anonymous" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-  <script crossorigin="anonymous" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script crossorigin="anonymous" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  </body>
+        </div>
+      </div>
+    </div></div>
+<script src="history_charts.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+  integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+  integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+
 </html>
