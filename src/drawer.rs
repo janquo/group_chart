@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-pub fn collage(images: Vec<PathBuf>, albums: Vec<&super::Album>, args: super::Args) {
+pub fn collage(images: Vec<PathBuf>, albums: Vec<super::Album>, args: super::Args) {
     use image::GenericImage;
 
     let x = args.x;

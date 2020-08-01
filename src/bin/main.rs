@@ -137,7 +137,7 @@ fn main() {
             }
         }
 
-        let smallest = -negative_scores_max_heap
+        let smallest = -*negative_scores_max_heap
             .peek()
             .unwrap_or(&Ratio::new(-100_000, 1));
 
@@ -181,12 +181,26 @@ fn main() {
         }
     }
 
-    let mut top: Vec<&Album> = Album::with_score(&top_albums)
+    let mut top : Vec<Album>= Album::with_score(top_albums)
         .into_iter()
         .take(collage_size)
         .collect();
 
-    let cover_urls = Album::get_images(&top, &args.path_write);
+    let mut cover_paths= Vec::new();
+    for album in top.iter_mut() {
+        match album.image.clone() {
+            Some(x) => cover_paths.push(
+                match download_image(&x, &args.path_write, &client) {
+                    Ok(img_path) => img_path,
+                    Err(err) => {
+                        database::erase_image(&db, &album);
+                        args.path_write.join("blank.png")
+                    }
+                },
+            ),
+            _ => cover_paths.push(args.path_write.join("blank.png")),
+        }
+    }
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
@@ -201,5 +215,5 @@ fn main() {
         database::create_history_table(&db).unwrap();
         database::save_results(&db, &top).unwrap();
     }
-    drawer::collage(cover_urls, top, args);
+    drawer::collage(cover_paths, top, args);
 }

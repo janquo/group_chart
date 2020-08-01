@@ -32,7 +32,7 @@ pub fn create_history_table(conn: &Connection) -> rusqlite::Result<()> {
     Ok(())
 }
 
-pub fn save_results(conn: &Connection, albums: &[&Album]) -> rusqlite::Result<()> {
+pub fn save_results(conn: &Connection, albums: &[Album]) -> rusqlite::Result<()> {
     let date = chrono::Local::now().to_rfc3339();
     let mut stmt = conn.prepare(
         "INSERT INTO tygodniowa (date, place, artist, title, scrobbles)
@@ -67,6 +67,23 @@ pub fn update_album(conn: &Connection, album: &Album) -> rusqlite::Result<usize>
     stmt.execute(params![
         album.tracks.map(|x| x as i32),
         album.image,
+        album.artist,
+        album.title,
+    ])
+}
+
+pub fn erase_image(conn: &Connection, album: &Album) -> rusqlite::Result<usize> {
+    let mut stmt = conn.prepare_cached(
+        "INSERT OR IGNORE INTO albums (artist, title)
+            VALUES (?1, ?2);",
+    )?;
+    stmt.execute(params![album.artist, album.title,])?;
+    let mut stmt = conn.prepare_cached(
+        "UPDATE albums SET image=?1
+            WHERE artist=?2 AND title=?3;",
+    )?;
+    stmt.execute(params![
+        "",
         album.artist,
         album.title,
     ])
