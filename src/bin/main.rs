@@ -188,18 +188,53 @@ fn main() {
 
     let mut cover_paths= Vec::new();
     for album in top.iter_mut() {
-        match album.image.clone() {
-            Some(x) => cover_paths.push(
+        cover_paths.push(
+            if let Some(x) = album.image.clone() {
                 match download_image(&x, &args.path_write, &client) {
                     Ok(img_path) => img_path,
                     Err(err) => {
-                        database::erase_image(&db, &album);
-                        args.path_write.join("blank.png")
+                        match err {
+                            DownloadError::OutdatedUrl => {
+                                let _ = database::erase_image(&db, &album);
+                                match album.more_info(&db, &key, &token, &client) {
+                                    Ok(x) => {
+                                        if !x {
+                                            if let Err(e) = database::update_album(&db, &album) {
+                                                eprintln!(
+                                                    "There was an error during appending new record to database: {}",
+                                                    e
+                                                )
+                                            }
+                                        }
+                                        if let Some(img) = album.image.clone() {
+                                            match download_image(&img, &args.path_write, &client) {
+                                                Ok(path) => path,
+                                                Err(err) => {
+                                                    eprintln!("Error {} during downloading image for {}", err.to_string(), album);
+                                                    args.placeholder_img()
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            args.placeholder_img()
+                                        }
+                                    }
+                                    Err(x) => {
+                                        eprintln!("{} while reading {}", x.to_string(), album);
+                                        args.placeholder_img()
+                                    }
+                                }
+                            }
+                            DownloadError::Reqwest(e) => {
+                                eprintln!("Error {} during downloading image for {}", e.to_string(), album);
+                                args.placeholder_img()
+                            }
+                        }
                     }
-                },
-            ),
-            _ => cover_paths.push(args.path_write.join("blank.png")),
-        }
+                }
+            }
+            else {args.placeholder_img()}
+        )
     }
 
     top.iter_mut().fold((), |_, x| println!("{}", x));

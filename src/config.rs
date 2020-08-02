@@ -129,4 +129,8 @@ impl Args {
             String::from(json["secret"].as_str().unwrap()),
         )
     }
+
+    pub fn placeholder_img(&self) -> PathBuf {
+        self.path_read.join("blank.png")
+    }
 }

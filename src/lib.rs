@@ -11,6 +11,8 @@ extern crate serde_json;
 extern crate threadpool;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate derive_error;
 
 use num_rational::Ratio;
 use rusqlite::Connection;
@@ -19,10 +21,9 @@ use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap};
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::{io, error};
+use std::{io};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use serde::export::Formatter;
 
 pub mod config;
 pub mod database;
@@ -31,15 +32,12 @@ pub mod lastfmapi;
 pub mod reader;
 pub mod spotifyapi;
 
-#[derive(Debug)]
-pub struct AgedUrl {}
-
-impl std::fmt::Display for AgedUrl {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "aged url")
-    }
+#[derive(Debug, Error)]
+pub enum DownloadError {
+    OutdatedUrl,
+    Reqwest(reqwest::Error),
 }
-impl error::Error for AgedUrl {}
+
 
 pub struct Args {
     pub x: u32,
@@ -368,10 +366,10 @@ pub fn download_image(
     target: &str,
     path: &Path,
     client: &reqwest::Client,
-) -> Result<PathBuf, Box<dyn error::Error>> {
+) -> Result<PathBuf, DownloadError> {
     let mut response = client.get(target).send()?;
     if !response.status().is_success() {
-        return Err((AgedUrl {}).into());
+        return Err(DownloadError::OutdatedUrl);
     }
     let result;
 
