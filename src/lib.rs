@@ -11,6 +11,8 @@ extern crate serde_json;
 extern crate threadpool;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate derive_error;
 
 use num_rational::Ratio;
 use rusqlite::Connection;
@@ -19,7 +21,7 @@ use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap};
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::io;
+use std::{io};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -30,6 +32,13 @@ pub mod lastfmapi;
 pub mod reader;
 pub mod spotifyapi;
 pub mod webpage;
+
+#[derive(Debug, Error)]
+pub enum DownloadError {
+    OutdatedUrl,
+    Reqwest(reqwest::Error),
+}
+
 
 pub struct Args {
     pub x: u32,
@@ -207,21 +216,21 @@ impl Album {
         top_none.sort_by_key(|x| -x.playcount);
         top_none
     }
-    pub fn with_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
-        let mut top_some: Vec<&Album> = albums.iter().filter(|x| x.score.is_some()).collect();
+    pub fn with_score(albums: BTreeSet<Album>) -> Vec<Album> {
+        let mut top_some :Vec<Album> = albums.into_iter().filter(|x| x.score.is_some()).collect();
         top_some.sort_by(|x, y| y.score.unwrap().partial_cmp(&x.score.unwrap()).unwrap());
         top_some
     }
 
-    pub fn get_images(albums: &[&Album], path: &Path) -> Vec<PathBuf> {
-        let mut cover_paths: Vec<PathBuf> = Vec::new();
+    pub fn get_images(albums: &[&Album], path: &Path) -> Vec<Option<PathBuf>> {
+        let mut cover_paths= Vec::new();
         let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
                 Some(x) => cover_paths.push(
-                    download_image(&x, path, &client).unwrap_or_else(|_| path.join("blank.png")),
+                    download_image(&x, path, &client).ok(),
                 ),
-                _ => cover_paths.push(path.join("blank.png")),
+                _ => cover_paths.push(Some(path.join("blank.png"))),
             }
         }
         cover_paths
@@ -302,7 +311,7 @@ pub fn is_top_and_update_top(
     top_number: usize,
     scores: &mut BinaryHeap<Ratio<i64>>,
 ) -> bool {
-    let smallest = -scores.peek().unwrap_or(&Ratio::new(-100_000, 1));
+    let smallest = -*scores.peek().unwrap_or(&Ratio::new(-100_000, 1));
 
     match album.score() {
         Some(score) => {
@@ -323,12 +332,29 @@ pub fn is_top_and_update_top(
     }
 }
 
+pub fn albums_to_html(albums: &[Album]) -> String {
+    let mut doc = String::from(include_str!("../data/html_header"));
+    for album in albums {
+        doc.push_str(&album.to_html_card());
+    }
+    doc.push_str(include_str!("../data/html_footer"));
+    doc
+}
+pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {
+    let mut file = File::create(path.join("index.html"))?;
+    file.write_all(s.as_bytes())?;
+    Ok(())
+}
+
 pub fn download_image(
     target: &str,
     path: &Path,
     client: &reqwest::Client,
-) -> Result<PathBuf, reqwest::Error> {
+) -> Result<PathBuf, DownloadError> {
     let mut response = client.get(target).send()?;
+    if !response.status().is_success() {
+        return Err(DownloadError::OutdatedUrl);
+    }
     let result;
 
     let mut dest = {

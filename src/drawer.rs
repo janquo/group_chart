@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-pub fn collage(images: Vec<PathBuf>, albums: Vec<&super::Album>, args: super::Args) {
+pub fn collage(images: Vec<PathBuf>, albums: Vec<super::Album>, args: super::Args) {
     use image::GenericImage;
 
     let x = args.x;
@@ -9,8 +9,14 @@ pub fn collage(images: Vec<PathBuf>, albums: Vec<&super::Album>, args: super::Ar
     let mut img = image::DynamicImage::new_rgba8(300 * x, 300 * y);
 
     for ((i, image), album) in (0..(x * y)).zip(images.iter()).zip(albums.iter()) {
-        let img2 =
-            image::open(image).unwrap_or_else(|_| image::DynamicImage::new_rgba8(300 * x, 300 * y));
+        let img2 = match image::open(image) {
+            Ok(im) => im,
+            Err(err) => {
+                eprintln!("error opening image for {}\n{}", album, err.to_string());
+                image::DynamicImage::new_rgba8(300 * x, 300 * y)
+            },
+        };
+        img2.resize_exact(300, 300, image::imageops::CatmullRom);
         let mut img2 = img2.to_rgba();
         if args.captions {
             draw_description(&mut img2, album.artist(), album.title());

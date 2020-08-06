@@ -33,7 +33,7 @@ pub fn load() -> Args {
             "write_path" => args.path_write = PathBuf::from(value),
             "out_path" => args.path_out = PathBuf::from(value),
             "web_path" => args.path_web = PathBuf::from(value),
-            "tygodniowa" => args.save_history = value.parse().unwrap(),
+            "tyodniowa" => args.save_history = value.parse().unwrap(),
             _ => panic!("check your config file"),
         }
     }
@@ -128,5 +128,9 @@ impl Args {
             String::from(json["id"].as_str().unwrap()),
             String::from(json["secret"].as_str().unwrap()),
         )
+    }
+
+    pub fn placeholder_img(&self) -> PathBuf {
+        self.path_read.join("blank.png")
     }
 }

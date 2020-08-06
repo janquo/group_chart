@@ -137,7 +137,7 @@ fn main() {
             }
         }
 
-        let smallest = -negative_scores_max_heap
+        let smallest = -*negative_scores_max_heap
             .peek()
             .unwrap_or(&Ratio::new(-100_000, 1));
 
@@ -181,12 +181,61 @@ fn main() {
         }
     }
 
-    let mut top: Vec<&Album> = Album::with_score(&top_albums)
+    let mut top : Vec<Album>= Album::with_score(top_albums)
         .into_iter()
         .take(collage_size)
         .collect();
 
-    let cover_urls = Album::get_images(&top, &args.path_write);
+    let mut cover_paths= Vec::new();
+    for album in top.iter_mut() {
+        cover_paths.push(
+            if let Some(x) = album.image.clone() {
+                match download_image(&x, &args.path_write, &client) {
+                    Ok(img_path) => img_path,
+                    Err(err) => {
+                        match err {
+                            DownloadError::OutdatedUrl => {
+                                let _ = database::erase_image(&db, &album);
+                                match album.more_info(&db, &key, &token, &client) {
+                                    Ok(x) => {
+                                        if !x {
+                                            if let Err(e) = database::update_album(&db, &album) {
+                                                eprintln!(
+                                                    "There was an error during appending new record to database: {}",
+                                                    e
+                                                )
+                                            }
+                                        }
+                                        if let Some(img) = album.image.clone() {
+                                            match download_image(&img, &args.path_write, &client) {
+                                                Ok(path) => path,
+                                                Err(err) => {
+                                                    eprintln!("Error {} during downloading image for {}", err.to_string(), album);
+                                                    args.placeholder_img()
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            args.placeholder_img()
+                                        }
+                                    }
+                                    Err(x) => {
+                                        eprintln!("{} while reading {}", x.to_string(), album);
+                                        args.placeholder_img()
+                                    }
+                                }
+                            }
+                            DownloadError::Reqwest(e) => {
+                                eprintln!("Error {} during downloading image for {}", e.to_string(), album);
+                                args.placeholder_img()
+                            }
+                        }
+                    }
+                }
+            }
+            else {args.placeholder_img()}
+        )
+    }
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
@@ -209,5 +258,5 @@ fn main() {
         let script = webpage::charts_js(history_data);
         webpage::save_charts_script(&script, &args.path_web).unwrap();
     }
-    drawer::collage(cover_urls, top, args);
+    drawer::collage(cover_paths, top, args);
 }

@@ -3,4 +3,5 @@
 /config.ini
 /Cargo.lock
 /install.bat
-/LOLZ.sqlite3
+/install.sh
+/LOLZ.sqlite
