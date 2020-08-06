@@ -16,16 +16,24 @@ pub fn create_albums_table(conn: &Connection) -> rusqlite::Result<()> {
     Ok(())
 }
 
-pub fn create_history_table(conn: &Connection) -> rusqlite::Result<()> {
+pub fn create_history_tables(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tygodniowa_dates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL
+        );",
+        params![],
+    )?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS tygodniowa (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
+            date INTEGER NOT NULL,
             place INTEGER NOT NULL,
             artist TEXT NOT NULL,
             title TEXT NOT NULL,
             scrobbles INTEGER NOT NULL,
-            CONSTRAINT fk_artist_title FOREIGN KEY (artist, title) REFERENCES albums (artist, title)
+            CONSTRAINT fk_artist_title FOREIGN KEY (artist, title) REFERENCES albums (artist, title),
+            CONSTRAINT fk_date FOREIGN KEY (date) REFERENCES tygodniowa_dates (id)
         );",
         params![],
     )?;
@@ -34,13 +42,18 @@ pub fn create_history_table(conn: &Connection) -> rusqlite::Result<()> {
 
 pub fn save_results(conn: &Connection, albums: &[Album]) -> rusqlite::Result<()> {
     let date = chrono::Local::now().to_rfc3339();
-    let mut stmt = conn.prepare(
+    let mut stmt_date = conn.prepare(
+        "INSERT INTO tygodniowa_dates (date)
+            VALUES (?1);",
+    )?;
+    let mut stmt = conn.prepare_cached(
         "INSERT INTO tygodniowa (date, place, artist, title, scrobbles)
             VALUES (?1,?2,?3,?4,?5);",
     )?;
+    let date_id = stmt_date.insert(params![date])?;
     for (i, album) in albums.iter().enumerate() {
         stmt.execute(params![
-            date,
+            date_id,
             i as isize,
             album.artist,
             album.title,
@@ -92,7 +105,7 @@ pub fn erase_image(conn: &Connection, album: &Album) -> rusqlite::Result<usize> 
 pub fn get_album(conn: &Connection, album: &Album) -> rusqlite::Result<Album> {
     let mut stmt = conn.prepare_cached(
         "SELECT tracks, image FROM albums
-                WHERE artist=?1 AND title=?2",
+                WHERE artist=?1 AND title=?2;",
     )?;
 
     stmt.query_row(params![album.artist, album.title], |row| {
@@ -102,4 +115,32 @@ pub fn get_album(conn: &Connection, album: &Album) -> rusqlite::Result<Album> {
             ..album.clone()
         })
     })
+}
+
+pub fn get_album_history(
+    conn: &Connection,
+    album: &Album,
+) -> rusqlite::Result<Vec<(usize, usize, usize)>> {
+    let mut result: Vec<(usize, usize, usize)> = vec![];
+    let mut stmt = conn.prepare_cached(
+        "SELECT date, place, scrobbles FROM tygodniowa
+            WHERE artist=?1 AND title=?2;",
+    )?;
+
+    let mut date_stmt = conn.prepare_cached(
+        "SELECT date from tygodniowa_dates
+            WHERE id=?1",
+    )?;
+
+    let data = stmt.query_map(params![album.artist, album.title], |row| {
+        Ok((
+            row.get::<usize, i32>(0)? as usize,
+            row.get::<usize, i32>(1)? as usize,
+            row.get::<usize, i32>(2)? as usize,
+        ))
+    })?;
+    for entry in data {
+        result.push(entry?);
+    }
+    Ok(result)
 }

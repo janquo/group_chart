@@ -240,15 +240,23 @@ fn main() {
     top.iter_mut().fold((), |_, x| println!("{}", x));
 
     if args.web {
-        let s = albums_to_html(&top);
-        if save_index_html(&s, &args.path_web).is_err() {
+        let s = webpage::albums_to_html(&top, args.save_history);
+        if webpage::save_index_html(&s, &args.path_web).is_err() {
             eprint!("{}", s);
         }
     }
 
     if args.save_history {
-        database::create_history_table(&db).unwrap();
+        database::create_history_tables(&db).unwrap();
         database::save_results(&db, &top).unwrap();
+
+        let mut history_data = vec![];
+        for album in top.iter() {
+            history_data.push(database::get_album_history(&db, album).unwrap());
+        }
+
+        let script = webpage::charts_js(history_data);
+        webpage::save_charts_script(&script, &args.path_web).unwrap();
     }
     drawer::collage(cover_paths, top, args);
 }
