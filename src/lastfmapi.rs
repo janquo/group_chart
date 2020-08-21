@@ -57,3 +57,11 @@ pub fn album_getinfo(
 
     Ok(result)
 }
+
+pub fn error_code(response: &Value) -> Option<i64> {
+    if response["error"] != serde_json::Value::Null {
+        response["error"].as_i64().unwrap().into()
+    } else {
+        None
+    }
+}

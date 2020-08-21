@@ -45,8 +45,7 @@ fn main() {
             }
             Ok(x) => x,
         };
-        if user_data["error"] != serde_json::Value::Null {
-            let error_code = user_data["error"].as_i64().unwrap();
+        if let Some(error_code) = lastfmapi::error_code(&user_data) {
             eprintln!("Error code {} while reading user {}", error_code, user);
             if error_code == 29 || (error_code == 8 && command.try_number < 5) {
                 eprintln!("waiting...");
@@ -181,60 +180,60 @@ fn main() {
         }
     }
 
-    let mut top : Vec<Album>= Album::with_score(top_albums)
+    let mut top: Vec<Album> = Album::with_score(top_albums)
         .into_iter()
         .take(collage_size)
         .collect();
 
-    let mut cover_paths= Vec::new();
+    let placeholder_img = args.placeholder_img();
+    let mut cover_paths = Vec::new();
     for album in top.iter_mut() {
-        cover_paths.push(
-            if let Some(x) = album.image.clone() {
-                match download_image(&x, &args.path_write, &client) {
-                    Ok(img_path) => img_path,
-                    Err(err) => {
-                        match err {
-                            DownloadError::OutdatedUrl => {
-                                let _ = database::erase_image(&db, &album);
-                                match album.more_info(&db, &key, &token, &client) {
-                                    Ok(x) => {
-                                        if !x {
-                                            if let Err(e) = database::update_album(&db, &album) {
-                                                eprintln!(
+        let mut image_path = placeholder_img.clone();
+        if let Some(x) = album.image.clone() {
+            match download_image(&x, &args.path_write, &client) {
+                Ok(p) => image_path = p,
+                Err(err) => match err {
+                    DownloadError::OutdatedUrl => {
+                        let _ = database::erase_image(&db, &album);
+                        match album.more_info(&db, &key, &token, &client) {
+                            Ok(x) => {
+                                if !x {
+                                    if let Err(e) = database::update_album(&db, &album) {
+                                        eprintln!(
                                                     "There was an error during appending new record to database: {}",
                                                     e
                                                 )
-                                            }
-                                        }
-                                        if let Some(img) = album.image.clone() {
-                                            match download_image(&img, &args.path_write, &client) {
-                                                Ok(path) => path,
-                                                Err(err) => {
-                                                    eprintln!("Error {} during downloading image for {}", err.to_string(), album);
-                                                    args.placeholder_img()
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            args.placeholder_img()
-                                        }
                                     }
-                                    Err(x) => {
-                                        eprintln!("{} while reading {}", x.to_string(), album);
-                                        args.placeholder_img()
+                                }
+                                if let Some(img) = album.image.clone() {
+                                    match download_image(&img, &args.path_write, &client) {
+                                        Ok(path) => image_path = path,
+                                        Err(err) => {
+                                            eprintln!(
+                                                "Error {} during downloading image for {}",
+                                                err.to_string(),
+                                                album
+                                            );
+                                        }
                                     }
                                 }
                             }
-                            DownloadError::Reqwest(e) => {
-                                eprintln!("Error {} during downloading image for {}", e.to_string(), album);
-                                args.placeholder_img()
+                            Err(x) => {
+                                eprintln!("{} while reading {}", x.to_string(), album);
                             }
                         }
                     }
-                }
+                    DownloadError::Reqwest(e) => {
+                        eprintln!(
+                            "Error {} during downloading image for {}",
+                            e.to_string(),
+                            album
+                        );
+                    }
+                },
             }
-            else {args.placeholder_img()}
-        )
+        }
+        cover_paths.push(image_path);
     }
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
