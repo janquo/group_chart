@@ -20,3 +20,6 @@ website fragment:
 
 albums trend graph:
 ![trend](https://github.com/janquo/group_chart/blob/gh-pages/example3.jpg)
+
+weekly actualised results for the "Jak będzie w akapie - sekcja muzyczna" facebook group, ~250 last.fm accounts:
+https://janquo.github.io/group_chart/
