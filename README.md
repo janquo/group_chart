@@ -1,14 +1,22 @@
 # group_chart
-create Last.fm albums collage for a group of people
+aggregate last.fm data for a group of users and create collage of their most listened albums
 
-## usage
-Manual set up of config.txt file required.
+## features
+* generate collages of arbitrary grid size and number of last.fm profiles
+* supports multiple time frames
+* along the collage, generates static website with data for each album displayed
+* album trend charts on a website
+* sorting albums using (scrobbles / no tracks on album) score
+* albums data (no tracks, covers) from last.fm / spotify api with option for manual override
+* storing data in local database (due to last.fm api calls limit)
 
-## arguments
-x, y - size of the collage
+## examples
 
-web - generate html page with detailed result
+collage:
+![collage](https://github.com/janquo/group_chart/blob/gh-pages/example.png)
 
-s - user name to use in single mode (when not stated it looks for list of users in users.txt file)
+website fragment:
+![website](https://github.com/janquo/group_chart/blob/gh-pages/example2.jpg)
 
-period - time frame of data
+albums trend graph:
+![trend](https://github.com/janquo/group_chart/blob/gh-pages/example3.jpg)
