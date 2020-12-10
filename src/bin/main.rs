@@ -6,6 +6,10 @@ use std::sync::mpsc;
 use std::sync::Arc;
 
 fn main() {
+
+    // ##############
+    // ----config----
+
     let args = config::load_args();
     let config = config::load();
     let args = match config.parse(args) {
@@ -29,6 +33,9 @@ fn main() {
     let key = args.get_key();
     let key = Arc::new(key);
 
+    // ###############################
+    // ----getting users scrobbles----
+
     let threadpool = reader::run_get_chart_for_all_users(&args, &key, transmitter);
 
     let mut progress = 0;
@@ -37,7 +44,7 @@ fn main() {
         let user_data = match data {
             Err(x) => {
                 eprintln!(
-                    "Couldn't aquire data for user {} because of {}\n trying again in a second...",
+                    "Couldn't acquire data for user {} because of {}\n trying again in a second...",
                     user, x
                 );
                 threadpool.execute(move || command.wait_get_chart(1000));
@@ -81,6 +88,9 @@ fn main() {
     }
 
     threadpool.join();
+
+    // ###########################################################
+    // ----getting additional info for albums and choosing top----
 
     let albums = Album::rev_sorted_vec(albums);
 
@@ -140,7 +150,7 @@ fn main() {
             .peek()
             .unwrap_or(&Ratio::new(-100_000, 1));
 
-        //some prunning
+        //some pruning
         if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
             break;
         }
@@ -151,10 +161,13 @@ fn main() {
         }
     }
 
+    // ##########################################
+    // ----getting missing info from the user----
+
     let top_none = Album::with_no_score(&top_albums);
 
     while nones_to_file(&top_none, &args.path_out).is_err() {
-        eprintln!("error ocurred durring attempt to write albums without score to a file\n Do you want to try again? Y/N");
+        eprintln!("error occurred during attempt to write albums without score to a file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
             Ok(x) => {
@@ -169,7 +182,7 @@ fn main() {
     std::io::stdin().read_line(&mut String::new()).unwrap_or(0);
 
     while reader::tracks_from_file(&mut top_albums, &args.path_out, &db).is_err() {
-        eprintln!("error ocurred durring attempt to read scores from file\n Do you want to try again? Y/N");
+        eprintln!("error occurred during attempt to read scores from file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
             Ok(x) => {
@@ -180,60 +193,65 @@ fn main() {
         }
     }
 
+    // ###############################################
+    // ----downloading images and preparing output----
+
     let mut top: Vec<Album> = Album::with_score(top_albums)
         .into_iter()
         .take(collage_size)
         .collect();
 
-    let placeholder_img = args.placeholder_img();
-    let mut cover_paths = Vec::new();
-    for album in top.iter_mut() {
-        let mut image_path = placeholder_img.clone();
-        if let Some(x) = album.image.clone() {
-            match download_image(&x, &args.path_write, &client) {
-                Ok(p) => image_path = p,
-                Err(err) => match err {
-                    DownloadError::OutdatedUrl => {
-                        let _ = database::erase_image(&db, &album);
-                        match album.more_info(&db, &key, &token, &client) {
-                            Ok(x) => {
-                                if !x {
-                                    if let Err(e) = database::update_album(&db, &album) {
-                                        eprintln!(
-                                                    "There was an error during appending new record to database: {}",
-                                                    e
-                                                )
-                                    }
-                                }
-                                if let Some(img) = album.image.clone() {
-                                    match download_image(&img, &args.path_write, &client) {
-                                        Ok(path) => image_path = path,
-                                        Err(err) => {
-                                            eprintln!(
-                                                "Error {} during downloading image for {}",
-                                                err.to_string(),
-                                                album
-                                            );
-                                        }
-                                    }
+    let mut cover_paths = vec![args.placeholder_img(); collage_size];
+    for (album, image_path) in top.iter_mut().zip(cover_paths.iter_mut()) {
+
+        if album.image.is_none() {
+            continue;
+        }
+
+        let cover_url = album.image.as_ref().unwrap();
+
+        match download_image(cover_url, &args.path_write, &client) {
+            Ok(path) => *image_path = path,
+            Err(err) => match err {
+                DownloadError::OutdatedUrl => {
+                    let _ = database::erase_image(&db, &album);
+                    match album.more_info(&db, &key, &token, &client) {
+                        Ok(x) => {
+                            if !x {
+                                if let Err(e) = database::update_album(&db, &album) {
+                                    eprintln!(
+                                                "There was an error during appending new record to database: {}",
+                                                e
+                                            )
                                 }
                             }
-                            Err(x) => {
-                                eprintln!("{} while reading {}", x.to_string(), album);
+                            if let Some(img) = album.image.clone() {
+                                match download_image(&img, &args.path_write, &client) {
+                                    Ok(path) => *image_path = path,
+                                    Err(err) => {
+                                        eprintln!(
+                                            "Error {} during downloading image for {}",
+                                            err.to_string(),
+                                            album
+                                        );
+                                    }
+                                }
                             }
                         }
+                        Err(x) => {
+                            eprintln!("{} while reading {}", x.to_string(), album);
+                        }
                     }
-                    DownloadError::Reqwest(e) => {
-                        eprintln!(
-                            "Error {} during downloading image for {}",
-                            e.to_string(),
-                            album
-                        );
-                    }
-                },
-            }
+                }
+                DownloadError::Reqwest(e) => {
+                    eprintln!(
+                        "Error {} during downloading image for {}",
+                        e.to_string(),
+                        album
+                    );
+                }
+            },
         }
-        cover_paths.push(image_path);
     }
 
     top.iter_mut().fold((), |_, x| println!("{}", x));
