@@ -50,7 +50,7 @@ impl Album {
     }
 }
 
-pub fn albums_to_html(albums: &[&Album], charts: bool) -> String {
+pub fn albums_to_html(albums: &[Album], charts: bool) -> String {
     let mut doc = String::from(include_str!("../data/html_header"));
     if charts {
         for (i, album) in albums.iter().enumerate() {
