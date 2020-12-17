@@ -225,8 +225,8 @@ fn main() {
                                             )
                                 }
                             }
-                            if let Some(img) = album.image.clone() {
-                                match download_image(&img, &args.path_write, &client) {
+                            if let Some(img) = album.image.as_ref() {
+                                match download_image(img, &args.path_write, &client) {
                                     Ok(path) => *image_path = path,
                                     Err(err) => {
                                         eprintln!(
