@@ -1,6 +1,7 @@
 use super::Album;
+use std::io::{Error, ErrorKind};
 
-pub fn get_access_token(id: &str, secret: &str) -> Result<String, reqwest::Error> {
+pub fn get_access_token(id: &str, secret: &str) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let mut response = client
         .post("https://accounts.spotify.com/api/token")
@@ -8,30 +9,32 @@ pub fn get_access_token(id: &str, secret: &str) -> Result<String, reqwest::Error
         .form(&[("grant_type", "client_credentials")])
         .send()?;
     let json: serde_json::Value = response.json()?;
-    Ok(String::from(json["access_token"].as_str().unwrap()))
+
+    json["access_token"].as_str()
+        .map(String::from)
+        .ok_or(Box::new(Error::new(ErrorKind::Other, "wrong response")))
 }
 
 impl Album {
-    fn from_value(value: &serde_json::Value) -> Self {
-        let tracks = match value["album_type"].as_str().unwrap() {
-            "album" | "compilation" => value["total_tracks"].as_u64().unwrap(),
+    fn from_value(value: &serde_json::Value) -> Option<Self> {
+        let tracks = match value["album_type"].as_str()?{
+            "album" | "compilation" => value["total_tracks"].as_u64()?,
             "single" => 1,
             s => panic!("there is another option {}, implement it!", s),
         } as usize;
-        let images = value["images"].as_array().unwrap();
+        let images = value["images"].as_array()?;
         let mut image: Option<String> = None;
         for img in images.iter() {
-            image = match img["height"].as_u64().unwrap() {
-                300 => Some(String::from(img["url"].as_str().unwrap())),
+            image = match img["height"].as_u64()? {
+                300 => Some(String::from(img["url"].as_str()?)),
                 _ => None,
             };
         }
-        Album {
-            title: String::from(value["name"].as_str().unwrap()),
+        Some(Album {
+            title: String::from(value["name"].as_str()?),
             artist: String::from(
                 value["artists"].as_array().unwrap()[0]["name"]
-                    .as_str()
-                    .unwrap(),
+                    .as_str()?
             ),
             playcount: 0,
             tracks: Some(tracks),
@@ -39,7 +42,7 @@ impl Album {
             image,
             best_contributor: (String::from("NaN"), 0),
             no_contributors: 0,
-        }
+        })
     }
 }
 pub fn search_album(
@@ -63,7 +66,9 @@ pub fn search_album(
         .as_array()
         .unwrap()
         .iter()
-        .map(Album::from_value);
+        .map(Album::from_value)
+        .filter(Option::is_some)
+        .map(Option::unwrap);
     Ok(albums.collect())
 }
 
