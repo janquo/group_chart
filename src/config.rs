@@ -33,7 +33,7 @@ pub fn load() -> Args {
             "write_path" => args.path_write = PathBuf::from(value),
             "out_path" => args.path_out = PathBuf::from(value),
             "web_path" => args.path_web = PathBuf::from(value),
-            "tyodniowa" => args.save_history = value.parse().unwrap(),
+            "tygodniowa" => args.save_history = value.parse().unwrap(),
             _ => panic!("check your config file"),
         }
     }
@@ -94,7 +94,7 @@ impl Args {
                 _ => return Err(WrongOption),
             }
         }
-        if !vec!["7day", "1month", "3month", "6month", "1year", "overall"]
+        if !vec!["7day", "1month", "3month", "6month", "12month", "overall"]
             .contains(&self.period.as_str())
         {
             return Err(WrongPeriod);
