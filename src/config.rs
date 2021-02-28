@@ -23,7 +23,7 @@ pub fn load() -> Args {
             "captions" => args.captions = value.parse().unwrap(),
             "web" => args.web = value.parse().unwrap(),
             "user" => {
-                args.nick = if value == "" {
+                args.nick = if value.is_empty() {
                     None
                 } else {
                     Some(String::from(value))

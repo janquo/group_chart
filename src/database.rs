@@ -95,11 +95,7 @@ pub fn erase_image(conn: &Connection, album: &Album) -> rusqlite::Result<usize> 
         "UPDATE albums SET image=?1
             WHERE artist=?2 AND title=?3;",
     )?;
-    stmt.execute(params![
-        "",
-        album.artist,
-        album.title,
-    ])
+    stmt.execute(params!["", album.artist, album.title,])
 }
 
 pub fn get_album(conn: &Connection, album: &Album) -> rusqlite::Result<Album> {
@@ -125,11 +121,6 @@ pub fn get_album_history(
     let mut stmt = conn.prepare_cached(
         "SELECT date, place, scrobbles FROM tygodniowa
             WHERE artist=?1 AND title=?2;",
-    )?;
-
-    let mut date_stmt = conn.prepare_cached(
-        "SELECT date from tygodniowa_dates
-            WHERE id=?1",
     )?;
 
     let data = stmt.query_map(params![album.artist, album.title], |row| {

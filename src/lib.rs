@@ -21,7 +21,7 @@ use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap};
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::{io};
+use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -38,7 +38,6 @@ pub enum DownloadError {
     OutdatedUrl,
     Reqwest(reqwest::Error),
 }
-
 
 pub struct Args {
     pub x: u32,
@@ -217,19 +216,17 @@ impl Album {
         top_none
     }
     pub fn with_score(albums: BTreeSet<Album>) -> Vec<Album> {
-        let mut top_some :Vec<Album> = albums.into_iter().filter(|x| x.score.is_some()).collect();
+        let mut top_some: Vec<Album> = albums.into_iter().filter(|x| x.score.is_some()).collect();
         top_some.sort_by(|x, y| y.score.unwrap().partial_cmp(&x.score.unwrap()).unwrap());
         top_some
     }
 
     pub fn get_images(albums: &[&Album], path: &Path) -> Vec<Option<PathBuf>> {
-        let mut cover_paths= Vec::new();
+        let mut cover_paths = Vec::new();
         let client = reqwest::Client::new();
         for album in albums.iter() {
             match &album.image {
-                Some(x) => cover_paths.push(
-                    download_image(&x, path, &client).ok(),
-                ),
+                Some(x) => cover_paths.push(download_image(&x, path, &client).ok()),
                 _ => cover_paths.push(Some(path.join("blank.png"))),
             }
         }
