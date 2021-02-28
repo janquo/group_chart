@@ -1,14 +1,19 @@
 use super::Album;
 use std::io::{Error, ErrorKind};
+use futures::executor::block_on;
 
 pub fn get_access_token(id: &str, secret: &str) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let mut response = client
+
+    let future = client
         .post("https://accounts.spotify.com/api/token")
         .basic_auth(id, Some(secret))
         .form(&[("grant_type", "client_credentials")])
-        .send()?;
-    let json: serde_json::Value = response.json()?;
+        .send();
+
+    let response = block_on(future)?;
+
+    let json: serde_json::Value = block_on(response.json())?;
 
     json["access_token"].as_str()
         .map(String::from)
@@ -45,14 +50,14 @@ impl Album {
         })
     }
 }
-pub fn search_album(
+pub async fn search_album(
     auth_token: &str,
     album: &Album,
     limit: usize,
 ) -> Result<Vec<Album>, reqwest::Error> {
     let query = format!("album:{} artist:{}", album.title, album.artist);
     let client = reqwest::Client::new();
-    let mut response = client
+    let response = client
         .get("https://api.spotify.com/v1/search")
         .bearer_auth(auth_token)
         .query(&[
@@ -60,8 +65,8 @@ pub fn search_album(
             ("type", "album"),
             ("limit", &limit.to_string()),
         ])
-        .send()?;
-    let json: serde_json::Value = response.json()?;
+        .send().await?;
+    let json: serde_json::Value = response.json().await?;
     let albums = json["albums"]["items"]
         .as_array()
         .unwrap()
@@ -72,8 +77,8 @@ pub fn search_album(
     Ok(albums.collect())
 }
 
-pub fn get_non_single(auth_token: &str, album: &Album) -> Result<Option<Album>, reqwest::Error> {
-    let mut albums = search_album(auth_token, album, 2)?;
+pub async fn get_non_single(auth_token: &str, album: &Album) -> Result<Option<Album>, reqwest::Error> {
+    let mut albums = search_album(auth_token, album, 2).await?;
     let mut result = None;
     if !albums.is_empty() {
         if albums[0].tracks() > 1 {

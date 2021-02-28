@@ -3,6 +3,9 @@ use std::fs;
 use std::io;
 use std::sync::Arc;
 use threadpool::ThreadPool;
+use serde_json::Value;
+use std::error::Error;
+use std::time::Duration;
 
 type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
 
@@ -11,8 +14,6 @@ pub struct Downloader {
     client: reqwest::Client,
     key: Arc<String>,
     period: Arc<String>,
-    transmitter: Sender,
-    pub try_number: usize,
 }
 
 impl Downloader {
@@ -20,29 +21,55 @@ impl Downloader {
         user: String,
         key: &Arc<String>,
         period: &Arc<String>,
-        transmitter: &Sender,
     ) -> Downloader {
         Downloader {
             user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period: Arc::clone(period),
-            transmitter: std::sync::mpsc::Sender::clone(transmitter),
-            try_number: 0,
         }
     }
 
-    pub fn delegate_get_chart(mut self) {
-        self.try_number += 1;
-        let chart = lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client);
-        std::sync::mpsc::Sender::clone(&self.transmitter)
-            .send((chart, self))
-            .unwrap();
+    async fn get_chart(&self) -> Result<Value, Box<dyn Error>> {
+        lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client).await
     }
 
-    pub fn wait_get_chart(self, time: u64) {
-        super::sleep(time);
-        self.delegate_get_chart();
+    /// tries to get lastfm data for the user repetitively
+    /// in case of error json response received, it sleeps **blocking** because if API calls rate is
+    ///     exceeded, no other tasks should be performed
+    pub async fn repeat_get_chart(self, time: u64) -> Option<Value> {
+        let mut try_number : i32 = 0;
+        loop {
+            try_number += 1;
+
+            let data = self.get_chart().await;
+
+            let user_data = match data {
+                Err(x) => {
+                    eprintln!(
+                        "Couldn't acquire data for user {} because of {}\n trying again in a second...",
+                        self.user.as_str(), x
+                    );
+                    async_std::task::sleep(Duration::from_secs(1));
+                    continue;
+                }
+                Ok(x) => x,
+            };
+
+            if let Some(error_code) = lastfmapi::error_code(&user_data) {
+                eprintln!("Error code {} while reading user {}", error_code, self.user.as_str());
+                if error_code == 29 || (error_code == 8 && try_number < 5) {
+                    eprintln!("waiting...");
+                    super::sleep(1000);
+                } else {
+                    eprintln!("escaping");
+                    return None;
+                }
+                continue;
+            }
+
+            return Some(user_data);
+        }
     }
 
     pub fn get_user(&self) -> &str {

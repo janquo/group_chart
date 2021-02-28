@@ -13,6 +13,8 @@ extern crate threadpool;
 extern crate lazy_static;
 #[macro_use]
 extern crate derive_error;
+extern crate futures;
+extern crate async_std;
 
 use num_rational::Ratio;
 use rusqlite::Connection;
@@ -86,6 +88,7 @@ impl Album {
             no_contributors: 0,
         }
     }
+    /// Returns `false` if there was an api call executed
     pub fn apis_info(
         &mut self,
         key: &str,

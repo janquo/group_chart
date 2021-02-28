@@ -14,21 +14,21 @@ pub fn parse_album(data: &Value, user: String) -> Album {
     }
 }
 
-pub fn get_chart(
+pub async fn get_chart(
     user: &str,
     key: &str,
     period: &str,
     client: &reqwest::Client,
-) -> Result<Value, reqwest::Error> {
+) -> Result<Value, Box<dyn std::error::Error>> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
                               user, key, period);
-    let mut response = client.get(&request_url).send()?;
+    let response = client.get(&request_url).send().await?;
 
-    let answer: Value = response.json()?;
+    let answer: Value = response.json().await?;
     Ok(answer)
 }
 
-pub fn album_getinfo(
+pub async fn album_getinfo(
     album: &Album,
     key: &str,
     client: &reqwest::Client,
@@ -36,9 +36,9 @@ pub fn album_getinfo(
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={}&artist={}&album={}&format=json",
                               key, album.artist.replace("&", "%26"), album.title.replace("&", "%26"));
 
-    let mut response = client.get(&request_url).send()?;
+    let response = client.get(&request_url).send().await?;
 
-    let data: Value = response.json()?;
+    let data: Value = response.json().await?;
 
     let tracks = data["album"]["tracks"]["track"].as_array().map(Vec::len);
 

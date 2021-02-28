@@ -6,9 +6,8 @@ edition = "2018"
 default-run = "main"
 
 [dependencies]
-reqwest= "0.9" #breaks on 0.10 - inroduces futures
 serde_derive= "1.0"
-serde= "1.0.106"
+serde= { version = "1.0.106", features = ["derive"] }
 serde_json= "1.0"
 image = "0.23"
 imageproc = "0.20"
@@ -19,7 +18,7 @@ regex = "1"
 lazy_static = "1"
 chrono = "0.4"
 derive-error = "0.0.4"
-
-[dependencies.rusqlite]
-version = "0.22"
-features = ["bundled"]
+rusqlite =  {version = "0.22", features = ["bundled"]}
+reqwest = {version = "0.11", features = ["json"]}
+futures = "0.3"
+async-std = "1.9.0"
