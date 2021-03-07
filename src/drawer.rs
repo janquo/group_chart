@@ -17,7 +17,7 @@ pub fn collage(images: Vec<PathBuf>, albums: Vec<super::Album>, args: super::Arg
             },
         };
         img2.resize_exact(300, 300, image::imageops::CatmullRom);
-        let mut img2 = img2.to_rgba();
+        let mut img2 = img2.to_rgba8();
         if args.captions {
             draw_description(&mut img2, album.artist(), album.title());
         }

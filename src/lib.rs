@@ -26,6 +26,7 @@ use std::hash::{Hash, Hasher};
 use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use crate::config::ConfigErr;
 
 pub mod config;
 pub mod database;
@@ -41,10 +42,45 @@ pub enum DownloadError {
     Reqwest(reqwest::Error),
 }
 
+#[derive(Copy, Clone)]
+pub enum Period {
+    Week,
+    Month,
+    Quarter,
+    Half,
+    Year,
+    Overall,
+}
+
+impl Period {
+    pub fn from_str(s: &str) -> Result<Self, ConfigErr> {
+        match s {
+            "7day" => Ok(Self::Week),
+            "1month" => Ok(Self::Month),
+            "3month" => Ok(Self::Quarter),
+            "6month" => Ok(Self::Half),
+            "12month" => Ok(Self::Year),
+            "overall" => Ok(Self::Overall),
+            _ => Err(ConfigErr::WrongPeriod),
+        }
+    }
+
+    pub fn to_str(&self) -> &str {
+        match self {
+            Period::Week => "7day",
+            Period::Month => "1month",
+            Period::Quarter => "3month",
+            Period::Half => "6month",
+            Period::Year => "12month",
+            Period::Overall => "overall",
+        }
+    }
+}
+
 pub struct Args {
     pub x: u32,
     pub y: u32,
-    pub period: String,
+    pub period: Period,
     pub captions: bool,
     pub nick: Option<String>,
     pub web: bool,
@@ -89,18 +125,18 @@ impl Album {
         }
     }
     /// Returns `false` if there was an api call executed
-    pub fn apis_info(
+    pub async fn apis_info(
         &mut self,
         key: &str,
         token: &str,
         client: &reqwest::Client,
     ) -> Result<bool, Box<dyn std::error::Error>> {
         if self.score.is_none() || !self.has_cover() {
-            if let Some(album) = spotifyapi::get_non_single(token, &self)? {
+            if let Some(album) = spotifyapi::get_non_single(token, &self).await? {
                 self.merge_info(album);
             }
             if self.tracks.is_none() || !self.has_cover() {
-                let album = lastfmapi::album_getinfo(self, &key, client)?;
+                let album = lastfmapi::album_getinfo(self, &key, client).await?;
                 self.merge_info(album);
             }
             Ok(false)
@@ -109,7 +145,7 @@ impl Album {
         }
     }
 
-    pub fn more_info(
+    pub async fn more_info(
         &mut self,
         db: &Connection,
         key: &str,
@@ -124,11 +160,11 @@ impl Album {
             }
             Err(rusqlite::Error::QueryReturnedNoRows) => (),
             Err(err) => eprintln!(
-                "error occured during reading album from the database: {:?}",
+                "error occurred during reading album from the database: {:?}",
                 err
             ),
         }
-        self.apis_info(key, token, client)
+        self.apis_info(key, token, client).await
     }
 
     fn compute_score(&mut self) {
@@ -224,16 +260,17 @@ impl Album {
         top_some
     }
 
-    pub fn get_images(albums: &[&Album], path: &Path) -> Vec<Option<PathBuf>> {
-        let mut cover_paths = Vec::new();
-        let client = reqwest::Client::new();
-        for album in albums.iter() {
-            match &album.image {
-                Some(x) => cover_paths.push(download_image(&x, path, &client).ok()),
-                _ => cover_paths.push(Some(path.join("blank.png"))),
-            }
-        }
-        cover_paths
+    pub async fn get_images(albums: &[&Album], path: &Path) -> Vec<Option<PathBuf>> {
+        let handles = albums.iter()
+            .map(|album| async move {
+                let client = reqwest::Client::new();
+                match &album.image {
+                    Some(x) => download_image(&x, path, &client).await.ok(),
+                    _ => Some(path.join("blank.png")),
+                }
+            });
+
+        futures::future::join_all(handles).await
     }
 
     pub fn has_cover(&self) -> bool {
@@ -340,18 +377,13 @@ pub fn albums_to_html(albums: &[Album]) -> String {
     doc.push_str(include_str!("../data/html_footer"));
     doc
 }
-pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {
-    let mut file = File::create(path.join("index.html"))?;
-    file.write_all(s.as_bytes())?;
-    Ok(())
-}
 
-pub fn download_image(
+pub async fn download_image(
     target: &str,
     path: &Path,
     client: &reqwest::Client,
 ) -> Result<PathBuf, DownloadError> {
-    let mut response = client.get(target).send()?;
+    let response = client.get(target).send().await?;
     if !response.status().is_success() {
         return Err(DownloadError::OutdatedUrl);
     }
@@ -368,7 +400,10 @@ pub fn download_image(
         result = PathBuf::from(&fname);
         File::create(fname).unwrap()
     };
-    std::io::copy(&mut response, &mut dest).unwrap();
+
+    let bytes = response.bytes().await.unwrap();
+
+    std::io::copy(&mut bytes.as_ref(), &mut dest).unwrap();
     Ok(result)
 }
 

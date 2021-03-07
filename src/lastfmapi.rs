@@ -17,11 +17,11 @@ pub fn parse_album(data: &Value, user: String) -> Album {
 pub async fn get_chart(
     user: &str,
     key: &str,
-    period: &str,
+    period: super::Period,
     client: &reqwest::Client,
 ) -> Result<Value, Box<dyn std::error::Error>> {
     let request_url = format!("http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={}&api_key={}&period={}&limit=1000&format=json",
-                              user, key, period);
+                              user, key, period.to_str());
     let response = client.get(&request_url).send().await?;
 
     let answer: Value = response.json().await?;

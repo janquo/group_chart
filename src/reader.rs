@@ -2,42 +2,40 @@ use super::*;
 use std::fs;
 use std::io;
 use std::sync::Arc;
-use threadpool::ThreadPool;
 use serde_json::Value;
 use std::error::Error;
 use std::time::Duration;
-
-type Sender = std::sync::mpsc::Sender<(Result<serde_json::Value, reqwest::Error>, Downloader)>;
+use futures::stream::futures_unordered::FuturesUnordered;
 
 pub struct Downloader {
     user: String,
     client: reqwest::Client,
     key: Arc<String>,
-    period: Arc<String>,
+    period: Period,
 }
 
 impl Downloader {
     pub fn new(
         user: String,
         key: &Arc<String>,
-        period: &Arc<String>,
+        period: Period,
     ) -> Downloader {
         Downloader {
             user,
             client: reqwest::Client::new(),
             key: Arc::clone(key),
-            period: Arc::clone(period),
+            period,
         }
     }
 
     async fn get_chart(&self) -> Result<Value, Box<dyn Error>> {
-        lastfmapi::get_chart(&self.user, &self.key, &self.period, &self.client).await
+        lastfmapi::get_chart(&self.user, &self.key, self.period, &self.client).await
     }
 
     /// tries to get lastfm data for the user repetitively
     /// in case of error json response received, it sleeps **blocking** because if API calls rate is
     ///     exceeded, no other tasks should be performed
-    pub async fn repeat_get_chart(self, time: u64) -> Option<Value> {
+    pub async fn repeat_get_chart(self) -> Option<Value> {
         let mut try_number : i32 = 0;
         loop {
             try_number += 1;
@@ -50,7 +48,8 @@ impl Downloader {
                         "Couldn't acquire data for user {} because of {}\n trying again in a second...",
                         self.user.as_str(), x
                     );
-                    async_std::task::sleep(Duration::from_secs(1));
+                    //async_std::task::sleep(Duration::from_secs(1)).await;
+                    super::sleep(1000);
                     continue;
                 }
                 Ok(x) => x,
@@ -80,19 +79,14 @@ impl Downloader {
 pub fn run_get_chart_for_all_users(
     args: &Args,
     key: &Arc<String>,
-    transmitter: Sender,
-) -> ThreadPool {
-    let pool = ThreadPool::new(15); // no idea what number of threads is right
-
+) -> FuturesUnordered<async_std::task::JoinHandle<Option<Value>>> {
     let users = args.load_users();
 
-    let period = Arc::new(args.period.clone());
-
-    for user in users.into_iter() {
-        let download_command = reader::Downloader::new(user, key, &period, &transmitter);
-        pool.execute(move || download_command.delegate_get_chart());
-    }
-    pool
+    users.into_iter()
+        .map(|user| reader::Downloader::new(user, key, args.period))
+        .map(reader::Downloader::repeat_get_chart)
+        .map(async_std::task::spawn)
+        .collect()
 }
 
 pub fn tracks_from_file(

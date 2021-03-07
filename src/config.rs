@@ -1,4 +1,4 @@
-use super::Args;
+use super::{Args, Period};
 use std::fs;
 use std::path::PathBuf;
 use ConfigErr::*;
@@ -19,7 +19,7 @@ pub fn load() -> Args {
         match key {
             "x" => args.x = value.parse().unwrap(),
             "y" => args.y = value.parse().unwrap(),
-            "period" => args.period = String::from(value),
+            "period" => args.period = Period::from_str(value).unwrap(),
             "captions" => args.captions = value.parse().unwrap(),
             "web" => args.web = value.parse().unwrap(),
             "user" => {
@@ -53,7 +53,7 @@ impl Args {
         Args {
             x: 5u32,
             y: 5u32,
-            period: String::from("7day"),
+            period: super::Period::Week,
             captions: false,
             nick: None,
             web: false,
@@ -86,18 +86,13 @@ impl Args {
                         .ok()
                         .ok_or(U32ParseError)?
                 }
-                "-p" => self.period = args.next().ok_or(NoArgument)?,
+                "-p" => self.period = Period::from_str(&args.next().ok_or(NoArgument)?)?,
                 "-c" => self.captions = true,
                 "-w" => self.web = true,
                 "-s" => self.nick = Some(args.next().ok_or(NoArgument)?),
                 "-t" => self.save_history = true,
                 _ => return Err(WrongOption),
             }
-        }
-        if !vec!["7day", "1month", "3month", "6month", "12month", "overall"]
-            .contains(&self.period.as_str())
-        {
-            return Err(WrongPeriod);
         }
         Ok(self)
     }

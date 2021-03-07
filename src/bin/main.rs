@@ -2,8 +2,8 @@ use config::ConfigErr;
 use group_chart::*;
 use num_rational::Ratio;
 use std::collections::{BTreeSet, BinaryHeap};
-use std::sync::mpsc;
 use std::sync::Arc;
+use futures::StreamExt;
 
 fn main() {
 
@@ -28,66 +28,42 @@ fn main() {
 
     let client = reqwest::Client::new();
 
-    let (transmitter, receiver) = mpsc::channel();
-
     let key = args.get_key();
     let key = Arc::new(key);
 
     // ###############################
     // ----getting users scrobbles----
 
-    let threadpool = reader::run_get_chart_for_all_users(&args, &key, transmitter);
+    let mut users_data_futures = reader::run_get_chart_for_all_users(&args, &key);
 
     let mut progress = 0;
-    for (data, command) in receiver {
-        let user = command.get_user();
-        let user_data = match data {
-            Err(x) => {
-                eprintln!(
-                    "Couldn't acquire data for user {} because of {}\n trying again in a second...",
-                    user, x
-                );
-                threadpool.execute(move || command.wait_get_chart(1000));
-                continue;
-            }
-            Ok(x) => x,
-        };
-        if let Some(error_code) = lastfmapi::error_code(&user_data) {
-            eprintln!("Error code {} while reading user {}", error_code, user);
-            if error_code == 29 || (error_code == 8 && command.try_number < 5) {
-                eprintln!("waiting...");
-                threadpool.execute(move || command.wait_get_chart(1000));
-            } else {
-                eprintln!("escaping");
-                progress += 1;
-                println!("{} users processed", progress);
-            }
-            continue;
+    futures::executor::block_on(async {
+        while let Some(user_data) = users_data_futures.next().await {
+
+            let user_data = if user_data.is_some() {user_data.unwrap()} else {continue};
+
+            let user_albums = match user_data["topalbums"]["album"].as_array() {
+                None => {
+                    eprintln!("User has no scrobbles. Continue to next user.");
+                    return;
+                }
+                Some(x) => x,
+            };
+
+            let user_albums = user_albums
+                .iter()
+                .map(|x| lastfmapi::parse_album(x, String::from(user)))
+                .map(|mut x| {
+                    x.remove_descriptors_from_name();
+                    x
+                })
+                .collect::<Vec<Album>>();
+            Album::insert(&mut albums, user_albums);
+
+            progress += 1;
+            println!("{} users processed", progress);
         }
-
-        let user_albums = match user_data["topalbums"]["album"].as_array() {
-            None => {
-                eprintln!("User {} has no scrobbles. Continue to next user.", user);
-                return;
-            }
-            Some(x) => x,
-        };
-
-        let user_albums = user_albums
-            .iter()
-            .map(|x| lastfmapi::parse_album(x, String::from(user)))
-            .map(|mut x| {
-                x.remove_descriptors_from_name();
-                x
-            })
-            .collect::<Vec<Album>>();
-        Album::insert(&mut albums, user_albums);
-
-        progress += 1;
-        println!("{} users processed", progress);
-    }
-
-    threadpool.join();
+    });
 
     // ###########################################################
     // ----getting additional info for albums and choosing top----
