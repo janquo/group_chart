@@ -40,7 +40,34 @@ fn main() {
     futures::executor::block_on(async {
         while let Some(downloader) = handles.next().await {
 
-            let user_data = if let Some(x) = downloader.get_value() {x} else {continue};
+            let user_data = match downloader.result {
+                Err(x) => {
+                    eprintln!(
+                        "Couldn't acquire data for user {} because of {}\n trying again in a second...",
+                        downloader.user(), x
+                    );
+                    handles.push(async_std::task::spawn(async {
+                        async_std::task::sleep(std::time::Duration::from_secs(1)).await;
+                        downloader.get_chart().await
+                    }));
+                    continue;
+                }
+                Ok(x) => x,
+            };
+
+            if let Some(error_code) = lastfmapi::error_code(&user_data) {
+                eprintln!("Error code {} while reading user {}", error_code, downloader.user());
+                if error_code == 29 || (error_code == 8 && downloader.n_tries() < 5) {
+                    eprintln!("waiting...");
+                    sleep(1000);
+                    handles.push(async_std::task::spawn(downloader.get_chart()))
+                } else {
+                    eprintln!("escaping");
+                    progress += 1;
+                    println!("{} users processed", progress);
+                }
+                continue;
+            }
 
             let user_albums = match user_data["topalbums"]["album"].as_array() {
                 None => {
@@ -52,7 +79,7 @@ fn main() {
 
             let user_albums = user_albums
                 .iter()
-                .map(|x| lastfmapi::parse_album(x, String::from(downloader.get_user())))
+                .map(|x| lastfmapi::parse_album(x, String::from(downloader.user())))
                 .map(|mut x| {
                     x.remove_descriptors_from_name();
                     x
