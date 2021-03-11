@@ -12,6 +12,7 @@ pub struct Downloader {
     client: reqwest::Client,
     key: Arc<String>,
     period: Period,
+    value: Option<Value>,
 }
 
 impl Downloader {
@@ -25,25 +26,26 @@ impl Downloader {
             client: reqwest::Client::new(),
             key: Arc::clone(key),
             period,
+            value: None,
         }
     }
 
-    async fn get_chart(&self) -> Result<Value, Box<dyn Error>> {
-        lastfmapi::get_chart(&self.user, &self.key, self.period, &self.client).await
+    async fn get_chart(&mut self) -> Result<(), Box<dyn Error>> {
+        self.value = Some(lastfmapi::get_chart(&self.user, &self.key, self.period, &self.client).await?);
+        Ok(())
     }
 
     /// tries to get lastfm data for the user repetitively
     /// in case of error json response received, it sleeps **blocking** because if API calls rate is
     ///     exceeded, no other tasks should be performed
-    pub async fn repeat_get_chart(self) -> Option<Value> {
+    pub async fn repeat_get_chart(mut self) -> Self {
         let mut try_number : i32 = 0;
         loop {
             try_number += 1;
 
-            let data = self.get_chart().await;
+            let result = self.get_chart().await;
 
-            let user_data = match data {
-                Err(x) => {
+            if let Err(x) = result {
                     eprintln!(
                         "Couldn't acquire data for user {} because of {}\n trying again in a second...",
                         self.user.as_str(), x
@@ -51,35 +53,35 @@ impl Downloader {
                     //async_std::task::sleep(Duration::from_secs(1)).await;
                     super::sleep(1000);
                     continue;
-                }
-                Ok(x) => x,
-            };
+            }
 
-            if let Some(error_code) = lastfmapi::error_code(&user_data) {
+            if let Some(error_code) = lastfmapi::error_code(self.value.as_ref().unwrap()) {
                 eprintln!("Error code {} while reading user {}", error_code, self.user.as_str());
                 if error_code == 29 || (error_code == 8 && try_number < 5) {
                     eprintln!("waiting...");
                     super::sleep(1000);
                 } else {
                     eprintln!("escaping");
-                    return None;
+                    self.value = None;
+                    return self;
                 }
                 continue;
             }
 
-            return Some(user_data);
+            return self;
         }
     }
 
     pub fn get_user(&self) -> &str {
         &self.user
     }
+    pub fn get_value(&self) -> Option<&Value> {self.value.as_ref()}
 }
 
 pub fn run_get_chart_for_all_users(
     args: &Args,
     key: &Arc<String>,
-) -> FuturesUnordered<async_std::task::JoinHandle<Option<Value>>> {
+) -> FuturesUnordered<async_std::task::JoinHandle<Downloader>> {
     let users = args.load_users();
 
     users.into_iter()

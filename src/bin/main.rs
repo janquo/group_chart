@@ -34,13 +34,13 @@ fn main() {
     // ###############################
     // ----getting users scrobbles----
 
-    let mut users_data_futures = reader::run_get_chart_for_all_users(&args, &key);
+    let mut handles = reader::run_get_chart_for_all_users(&args, &key);
 
     let mut progress = 0;
     futures::executor::block_on(async {
-        while let Some(user_data) = users_data_futures.next().await {
+        while let Some(downloader) = handles.next().await {
 
-            let user_data = if user_data.is_some() {user_data.unwrap()} else {continue};
+            let user_data = if let Some(x) = downloader.get_value() {x} else {continue};
 
             let user_albums = match user_data["topalbums"]["album"].as_array() {
                 None => {
@@ -52,7 +52,7 @@ fn main() {
 
             let user_albums = user_albums
                 .iter()
-                .map(|x| lastfmapi::parse_album(x, String::from(user)))
+                .map(|x| lastfmapi::parse_album(x, String::from(downloader.get_user())))
                 .map(|mut x| {
                     x.remove_descriptors_from_name();
                     x
