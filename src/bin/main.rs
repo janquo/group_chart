@@ -1,7 +1,5 @@
 use config::ConfigErr;
 use group_chart::*;
-use num_rational::Ratio;
-use std::collections::{BTreeSet, BinaryHeap};
 use std::sync::mpsc;
 use std::sync::Arc;
 
@@ -10,9 +8,9 @@ fn main() {
     // ##############
     // ----config----
 
-    let args = config::load_args();
-    let config = config::load();
-    let args = match config.parse(args) {
+    let raw_args = config::load_args();
+    let default_config = config::load();
+    let args = match default_config.parse(raw_args) {
         Ok(x) => x,
         Err(ConfigErr::NoArgument) => panic!("-x, -y, -p, -s have to be followed by a value"),
         Err(ConfigErr::U32ParseError) => panic!("use positive integers as collage dimensions"),
@@ -24,7 +22,7 @@ fn main() {
 
     let collage_size = args.size();
 
-    let mut albums: BTreeSet<Album> = BTreeSet::new();
+    let mut albums = AlbumsUnscored::new();
 
     let client = reqwest::Client::new();
 
@@ -81,7 +79,7 @@ fn main() {
                 x
             })
             .collect::<Vec<Album>>();
-        Album::insert(&mut albums, user_albums);
+        albums.insert(user_albums);
 
         progress += 1;
         println!("{} users processed", progress);
@@ -92,10 +90,9 @@ fn main() {
     // ###########################################################
     // ----getting additional info for albums and choosing top----
 
-    let albums = Album::rev_sorted_vec(albums);
+    let albums = albums.playcount_sorted();
 
-    let mut top_albums = BTreeSet::new();
-    let mut negative_scores_max_heap: BinaryHeap<Ratio<i64>> = BinaryHeap::new();
+    let mut top_albums = AlbumsPruned::new(collage_size);
 
     let db = loop {
         match database::connect(&args.path_write.join("LOLZ.sqlite3")) {
@@ -146,28 +143,16 @@ fn main() {
             }
         }
 
-        let smallest = -*negative_scores_max_heap
-            .peek()
-            .unwrap_or(&Ratio::new(-100_000, 1));
-
-        //some pruning
-        if top_albums.len() >= collage_size && Ratio::new(album.playcount(), 3) < smallest {
-            break;
-        }
-
-        //if a score belongs to top or there is no score then insert
-        if is_top_and_update_top(&album, collage_size, &mut negative_scores_max_heap) {
-            top_albums.insert(album);
-        }
+        let _ = top_albums.insert_pruning(album);
     }
 
     // ##########################################
     // ----getting missing info from the user----
 
-    let top_none = Album::with_no_score(&top_albums);
+    let top_none = top_albums.with_no_score();
 
     while nones_to_file(&top_none, &args.path_out).is_err() {
-        eprintln!("error occurred during attempt to write albums without score to a file\n Do you want to try again? Y/N");
+        println!("error occurred during attempt to write albums without score to a file\n Do you want to try again? Y/N");
         match wants_again() {
             Err(x) => eprintln!("error: {}\n trying again...", x),
             Ok(x) => {
@@ -181,13 +166,27 @@ fn main() {
     println!("update nones file and enter anything to proceed");
     std::io::stdin().read_line(&mut String::new()).unwrap_or(0);
 
-    while reader::tracks_from_file(&mut top_albums, &args.path_out, &db).is_err() {
-        eprintln!("error occurred during attempt to read scores from file\n Do you want to try again? Y/N");
-        match wants_again() {
-            Err(x) => eprintln!("error: {}\n trying again...", x),
-            Ok(x) => {
-                if !x {
-                    break;
+    loop {
+        match reader::tracks_from_file(&args.path_out) {
+            Ok(albums) => {
+                albums.into_iter().for_each(|x| {
+                    if let Err(e) = database::update_tracks(&db, &x) {
+                        eprintln!("error {} while updating tracks in database", e);
+                    }
+                    top_albums.update_tracks(x);
+                });
+                break;
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+                println!("error occurred during attempt to read scores from file\n Do you want to try again? Y/N");
+                match wants_again() {
+                    Err(x) => eprintln!("error: {}\n trying again...", x),
+                    Ok(x) => {
+                        if !x {
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -196,7 +195,13 @@ fn main() {
     // ###############################################
     // ----downloading images and preparing output----
 
-    let mut top: Vec<Album> = Album::with_score(top_albums)
+    let results = top_albums.with_score();
+
+    if let Err(e) = crate::save_results(&results, &args.path_write.join("results.json")) {
+        eprintln!("couldn't save results into a file: {}", e);
+    }
+
+    let mut top: Vec<Album> = results
         .into_iter()
         .take(collage_size)
         .collect();

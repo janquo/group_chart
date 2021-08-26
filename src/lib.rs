@@ -52,24 +52,18 @@ pub struct Args {
     pub path_web: PathBuf,
     pub save_history: bool,
 }
-
+_
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Album {
     title: String,
     artist: String,
-
-    #[serde(skip)]
     playcount: i64,
     tracks: Option<usize>,
 
     #[serde(skip)]
     score: Option<Ratio<i64>>,
     pub image: Option<String>,
-
-    #[serde(skip)]
     best_contributor: (String, i64),
-
-    #[serde(skip)]
     no_contributors: i64,
 }
 
@@ -121,7 +115,7 @@ impl Album {
             }
             Err(rusqlite::Error::QueryReturnedNoRows) => (),
             Err(err) => eprintln!(
-                "error occured during reading album from the database: {:?}",
+                "error occurred during reading album from the database: {:?}",
                 err
             ),
         }
@@ -142,11 +136,11 @@ impl Album {
         ));
     }
 
-    pub fn merge(&mut self, other: &Album) {
-        self.no_contributors += 1;
+    pub fn merge(&mut self, other: Album) {
+        self.no_contributors += other.no_contributors;
         self.playcount += other.playcount;
         if self.best_contributor.1 < other.best_contributor.1 {
-            self.best_contributor = other.best_contributor.clone();
+            self.best_contributor = other.best_contributor;
         }
     }
 
@@ -178,25 +172,6 @@ impl Album {
         self.score
     }
 
-    pub fn insert(albums: &mut BTreeSet<Album>, user_albums: Vec<Album>) {
-        for album in user_albums {
-            //insert returns false if same entry exists in a set
-            if albums.contains(&album) {
-                let mut old = albums.take(&album).unwrap();
-                old.merge(&album);
-                albums.insert(old);
-            } else {
-                albums.insert(album);
-            }
-        }
-    }
-
-    pub fn rev_sorted_vec(albums: BTreeSet<Album>) -> Vec<Album> {
-        let mut res: Vec<Album> = albums.into_iter().collect();
-        res.sort_by_key(|album| -album.playcount());
-        res
-    }
-
     pub fn compare_decr(&self, other: &Album) -> Ordering {
         if self.score.is_none() || other.score.is_none() {
             return other.playcount.cmp(&self.playcount);
@@ -207,18 +182,8 @@ impl Album {
             .partial_cmp(&self.score.unwrap())
             .unwrap()
     }
-    pub fn to_string_semic(&self) -> String {
+    pub fn to_string_semicolon(&self) -> String {
         format!("{};{};{}", self.artist, self.title, self.playcount)
-    }
-    pub fn with_no_score(albums: &BTreeSet<Album>) -> Vec<&Album> {
-        let mut top_none: Vec<&Album> = albums.iter().filter(|x| x.score.is_none()).collect();
-        top_none.sort_by_key(|x| -x.playcount);
-        top_none
-    }
-    pub fn with_score(albums: BTreeSet<Album>) -> Vec<Album> {
-        let mut top_some: Vec<Album> = albums.into_iter().filter(|x| x.score.is_some()).collect();
-        top_some.sort_by(|x, y| y.score.unwrap().partial_cmp(&x.score.unwrap()).unwrap());
-        top_some
     }
 
     pub fn get_images(albums: &[&Album], path: &Path) -> Vec<Option<PathBuf>> {
@@ -302,30 +267,103 @@ impl Hash for Album {
     }
 }
 
-///returns false if album shouldn't be considered
-pub fn is_top_and_update_top(
-    album: &Album,
-    top_number: usize,
-    scores: &mut BinaryHeap<Ratio<i64>>,
-) -> bool {
-    let smallest = -*scores.peek().unwrap_or(&Ratio::new(-100_000, 1));
+pub struct AlbumsUnscored {
+    data: BTreeSet<Album>,
+}
 
-    match album.score() {
-        Some(score) => {
-            if score < smallest && scores.len() < top_number {
-                scores.push(-score);
-                true
-            } else if score >= smallest {
-                scores.push(-score);
-                if scores.len() > top_number {
-                    scores.pop();
-                }
-                true
-            } else {
-                false
-            }
+impl AlbumsUnscored {
+    pub fn new() -> Self {
+        Self {
+            data: BTreeSet::new(),
         }
-        None => true,
+    }
+
+    pub fn insert(&mut self, user_albums: Vec<Album>) {
+        for mut album in user_albums.into_iter() {
+
+            if self.data.contains(&album) {
+                let mut old = self.data.take(&album).unwrap();
+                old.merge(album);
+                album = old;
+            }
+
+            self.data.insert(album);
+        }
+    }
+
+    pub fn playcount_sorted(self) -> Vec<Album> {
+        let mut res: Vec<Album> = self.data.into_iter().collect();
+        res.sort_by_key(|album| -album.playcount());
+        res
+    }
+}
+
+/// aims to keep top `pruning size` scored albums
+/// albums will only be pruned if by the time of insert it is sure it won't be in the top
+pub struct AlbumsPruned {
+    data: BTreeSet<Album>,
+    min_scores: BinaryHeap<Ratio<i64>>, // it's max heap so it keeps negative scores
+    pruning_size: usize,
+}
+
+impl AlbumsPruned {
+    pub fn new(pruning_size: usize) -> Self {
+        Self {
+            data: BTreeSet::new(),
+            min_scores: BinaryHeap::new(),
+            pruning_size,
+        }
+    }
+
+    /// returns false if album was pruned
+    pub fn insert_pruning(&mut self, album: Album) -> bool {
+        let smallest = -*(self.min_scores
+            .peek()
+            .unwrap_or(&Ratio::new(i64::MIN, 1)));
+
+        if self.data.len() >= self.pruning_size && Ratio::new(album.playcount(), 3) < smallest {
+            return false;
+        }
+
+        match album.score() {
+            Some(score) => {
+                if score < smallest && self.min_scores.len() < self.pruning_size {
+                    self.min_scores.push(-score);
+                    true
+                } else if score >= smallest {
+                    self.min_scores.push(-score);
+                    if self.min_scores.len() > self.pruning_size {
+                        self.min_scores.pop();
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+            None => false,
+        }
+    }
+
+    pub fn with_no_score(&self) -> Vec<&Album> {
+        let mut top_none: Vec<&Album> = self.data.iter()
+            .filter(|x| x.score().is_none())
+            .collect();
+        top_none.sort_by_key(|x| -x.playcount());
+        top_none
+    }
+
+    pub fn with_score(self) -> Vec<Album> {
+        let mut top_some: Vec<Album> = self.data.into_iter().filter(|x| x.score.is_some()).collect();
+        top_some.sort_by(|x, y| y.score.unwrap().partial_cmp(&x.score.unwrap()).unwrap());
+        top_some
+    }
+
+    pub fn update_tracks(&mut self, album: Album) {
+        if let Some(mut old) = self.data.take(&album) {
+            old.tracks = album.tracks;
+            old.compute_score();
+            self.data.insert(old);
+        }
     }
 }
 
@@ -336,11 +374,6 @@ pub fn albums_to_html(albums: &[Album]) -> String {
     }
     doc.push_str(include_str!("../data/html_footer"));
     doc
-}
-pub fn save_index_html(s: &str, path: &Path) -> io::Result<()> {
-    let mut file = File::create(path.join("index.html"))?;
-    file.write_all(s.as_bytes())?;
-    Ok(())
 }
 
 pub fn download_image(
@@ -374,12 +407,29 @@ pub fn nones_to_file(nones: &[&Album], path: &Path) -> io::Result<()> {
     file.write_all(
         nones
             .iter()
-            .map(|x| x.to_string_semic())
+            .map(|x| x.to_string_semicolon())
             .collect::<Vec<String>>()
             .join("\n")
             .as_bytes(),
     )?;
     Ok(())
+}
+
+pub fn save_results(albums: &Vec<Album>, path: &Path) -> io::Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(
+        serde_json::to_string(albums)?.as_bytes()
+    )?;
+    Ok(())
+}
+
+pub fn results_from_file(path: &Path) -> io::Result<Vec<Album>> {
+    let content = std::fs::read_to_string(path)?;
+    let mut results : Vec<Album> = serde_json::from_str(&content)?;
+    for album in results.iter_mut() {
+        album.compute_score();
+    }
+    Ok(results)
 }
 
 pub fn sleep(x: u64) {
@@ -430,6 +480,7 @@ mod tests {
         }
     }
 
+    //noinspection ALL
     #[test]
     fn serialize_album() {
         let album = Album {

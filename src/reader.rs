@@ -69,31 +69,32 @@ pub fn run_get_chart_for_all_users(
 }
 
 pub fn tracks_from_file(
-    albums: &mut BTreeSet<Album>,
     path_out: &Path,
-    db: &Connection,
-) -> io::Result<()> {
+) -> io::Result<Vec<Album>> {
     let content = fs::read_to_string(path_out.join("nones.txt"))?;
+
+    let mut res = vec![];
+
     for line in content.lines() {
         let mut words = line.split(';');
+
         let (artist, title, tracks) = (words.next(), words.next(), words.next());
+
         if tracks == None {
             continue;
         }
-        let current = albums.get(&Album::new(
+
+        let mut album = Album::new(
             String::from(artist.unwrap()),
             String::from(title.unwrap()),
-        ));
-        if current.is_none() {
-            continue;
-        }
-        let mut updated = (*(current.as_ref().unwrap())).clone();
-        updated.tracks = tracks.map(|x| x.parse().unwrap_or(0));
-        updated.compute_score();
-        database::update_album(&db, &updated).unwrap();
-        albums.replace(updated);
+        );
+
+        album.tracks = tracks.map(|x| x.parse().unwrap_or(0));
+
+        res.push(album);
     }
-    Ok(())
+
+    Ok(res)
 }
 
 pub fn get_users(path: &std::path::Path) -> Vec<String> {
